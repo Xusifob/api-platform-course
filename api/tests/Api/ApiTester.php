@@ -2,21 +2,34 @@
 
 namespace App\Tests\Api;
 
+use ApiPlatform\Api\IriConverterInterface;
+use ApiPlatform\Exception\ResourceClassNotFoundException;
 use ApiPlatform\Metadata\Resource\Factory\ResourceMetadataCollectionFactoryInterface;
 use ApiPlatform\Symfony\Bundle\Test\ApiTestCase;
+use App\Entity\IEntity;
+use App\Repository\IRepository;
+use Doctrine\ORM\EntityManagerInterface;
+use Hautelook\AliceBundle\PhpUnit\ReloadDatabaseTrait;
 use JetBrains\PhpStorm\ArrayShape;
 use Symfony\Component\HttpClient\Exception\ClientException;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
 abstract class ApiTester extends ApiTestCase
 {
+
+    use ReloadDatabaseTrait;
+
+
+    private $apiClient;
 
     public const FORMAT_JSONLD = "jsonld";
 
     public const FORMAT_JSONAPI = "jsonapi";
 
     public const FORMAT_VALUES = [
-        //   self::FORMAT_JSONLD,
+        self::FORMAT_JSONLD,
         self::FORMAT_JSONAPI
     ];
 
@@ -27,15 +40,25 @@ abstract class ApiTester extends ApiTestCase
     protected ResourceMetadataCollectionFactoryInterface $metadataFactory;
 
 
+    protected EntityManagerInterface|null $em;
+
     public function setUp(): void
     {
-        parent::setUp();
-        self::bootKernel();
+        $this->apiClient = self::createClient();
 
         $this->translator = self::getContainer()->get(TranslatorInterface::class);
         $this->metadataFactory = self::getContainer()->get(ResourceMetadataCollectionFactoryInterface::class);
+        $this->em = self::getContainer()->get('doctrine')->getManager();
     }
 
+
+    public function tearDown(): void
+    {
+        parent::ensureKernelShutdown();
+        parent::tearDown();
+        $this->em->close();
+        $this->em = null;
+    }
 
 
     #[ArrayShape(["string" => "array"])]
@@ -51,29 +74,65 @@ abstract class ApiTester extends ApiTestCase
     }
 
 
+    protected function post(string $url, array $json = []): ?array
+    {
+        return $this->doRequest("POST", $url, $json);
+    }
 
-    protected function post(string $url, array $json = []): array
+    protected function put(IEntity|string $url, array $json = []): ?array
+    {
+        $url = $this->getUrl($url);
+
+        return $this->doRequest("PUT", $url, $json);
+    }
+
+    protected function delete(IEntity|string $url): ?array
+    {
+        $url = $this->getUrl($url);
+
+        return $this->doRequest("DELETE", $url);
+    }
+
+
+    protected function get(IEntity|string $url): ?array
+    {
+        $url = $this->getUrl($url);
+
+        return $this->doRequest("GET", $url);
+    }
+
+
+    private function getUrl(IEntity|string $url): string
+    {
+        if (is_string($url)) {
+            return $url;
+        }
+
+        $entityUrl = $this->getEntityUri($url);
+
+        if (is_string($entityUrl)) {
+            return $entityUrl;
+        }
+
+        throw new \Exception("No url found for entity $url");
+    }
+
+    private function doRequest(string $method, string $url, array $json = []): ?array
     {
         try {
-            $response = self::createClient()->request("POST", $url, [
+            $response = $this->apiClient->request($method, $url, [
                 'json' => $this->formatData($json),
                 "headers" => $this->getHeaders()
             ]);
 
             return json_decode($response->getContent(), true);
-        } catch (ClientException $exception) {
+        } catch (HttpException|ClientException $exception) {
             return json_decode($exception->getResponse()->getContent(false), true);
         }
     }
 
 
-    /**
-     * @param array $data
-     * @param array $postData
-     * @return void
-     * @throws \ApiPlatform\Exception\ResourceClassNotFoundException
-     */
-    public function assertResponseHasPostData(array $data, array $postData)
+    public function assertResponseHasPostData(array $data, array $postData): void
     {
         match ($this->format) {
             self::FORMAT_JSONLD => $this->assertJsonLdResponsePostData($data, $postData),
@@ -81,10 +140,24 @@ abstract class ApiTester extends ApiTestCase
         };
     }
 
+    public function assertGetCollectionCount(int $count, array $data): void
+    {
+        match ($this->format) {
+            self::FORMAT_JSONLD => $this->assertCount($count, $data['hydra:member']),
+            self::FORMAT_JSONAPI => $this->assertCount($count, $data['data']),
+        };
+    }
+
+
+    public function assertResponseIsNotFound()
+    {
+        $this->assertResponseStatusCodeSame(Response::HTTP_NOT_FOUND);
+    }
+
 
     private function assertJsonLdResponsePostData(array $data, array $postData): void
     {
-        $context = $this->getContext();
+        $context = $this->getShortName();
 
         $this->assertEquals("/contexts/{$context}", $data['@context']);
         $this->assertEquals($context, $data["@type"]);
@@ -100,12 +173,14 @@ abstract class ApiTester extends ApiTestCase
     {
         $data = $data['data'];
 
-        $context = $this->getContext();
+        $context = $this->getShortName();
 
         $this->assertEquals($context, $data["type"]);
         $this->assertArrayHasKey("id", $data);
 
-        foreach ($postData as $key => $postDatum) {
+        $attributes = $postData['data']['attributes'] ?? $postData;
+
+        foreach ($attributes as $key => $postDatum) {
             $this->assertEquals($postDatum, $data["attributes"][$key]);
         }
     }
@@ -225,7 +300,7 @@ abstract class ApiTester extends ApiTestCase
     {
         return match ($this->format) {
             self::FORMAT_JSONLD => $data,
-            self::FORMAT_JSONAPI => [
+            self::FORMAT_JSONAPI => isset($data['data']['attributes']) ? $data : [
                 "data" => [
                     "attributes" => $data
                 ]
@@ -244,17 +319,61 @@ abstract class ApiTester extends ApiTestCase
     /**
      * @return string
      */
-    abstract function getClass(): string;
+    public function getClass(string $class = null): string
+    {
+        if ($class) {
+            return $class;
+        }
+
+        return $this->getDefaultClass();
+    }
+
 
     /**
      * @return string
-     * @throws \ApiPlatform\Exception\ResourceClassNotFoundException
      */
-    private function getContext(): string
+    abstract function getDefaultClass(): string;
+
+    /**
+     * @return string
+     * @throws ResourceClassNotFoundException
+     */
+    protected function getShortName(string|IEntity $class = null): string
     {
-        $operation = $this->metadataFactory->create($this->getClass())->getOperation();
+        if ($class instanceof IEntity) {
+            $class = $class::class;
+        }
+
+        $operation = $this->metadataFactory->create($this->getClass($class))->getOperation();
 
         return $operation->getShortName();
+    }
+
+
+    protected function getRepository(string $class = null): IRepository
+    {
+        $this->em->clear();
+
+        return $this->em->getRepository($this->getClass($class));
+    }
+
+
+    protected function getEntity(string $class = null): IEntity
+    {
+        return $this->getRepository($class)->findOneBy([]);
+    }
+
+
+    protected function getEntityUri(IEntity|string $entity): string|null
+    {
+        if (is_string($entity)) {
+            $entity = $this->getEntity($entity);
+        }
+
+        /** @var IriConverterInterface */
+        $iriConverter = self::getContainer()->get('api_platform.iri_converter');
+
+        return $iriConverter->getIriFromResource($entity);
     }
 
 

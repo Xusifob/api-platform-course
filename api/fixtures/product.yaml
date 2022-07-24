@@ -1,0 +1,6 @@
+App\Entity\Product:
+    product_{1..10}:
+        name: <sentence(4)>
+        description: <text()>
+        price: <numberBetween(10,1000)>
+        categories: ['@product_category_1']

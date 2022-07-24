@@ -6,3 +6,5 @@ product:
         not_blank: Please write a description
     name:
         not_blank: Please write a product name
+    category:
+        not_null: Please choose a category

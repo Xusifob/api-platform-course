@@ -8,8 +8,7 @@ services:
       - ./api/docker/php/conf.d/api-platform.dev.ini:/usr/local/etc/php/conf.d/api-platform.ini
       # if you develop on Linux, you may use a bind-mounted host directory instead
       # - ./api/var:/srv/api/var:rw
-    environment:
-      APP_ENV: dev
+  
 
   caddy:
     volumes:

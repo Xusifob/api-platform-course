@@ -1,0 +1,4 @@
+App\Entity\ProductCategory:
+    product_category_{1..2}:
+        name: <sentence(4)>
+        description: <text()>
