@@ -1,0 +1,5 @@
+product:
+    price:
+        min: Votre prix doit être supérieur à zéro
+    description:
+        not_blank: Veuillez saisir une description

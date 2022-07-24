@@ -1,0 +1,6 @@
+App\Entity\ProductCategory:
+    attributes:
+        normalization_context:
+            groups: [ product_categories ]
+    collectionOperations: ~
+    itemOperations: ~

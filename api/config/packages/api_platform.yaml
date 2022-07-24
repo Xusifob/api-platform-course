@@ -2,9 +2,20 @@ api_platform:
     title: Hello API Platform
     version: 1.0.0
     mapping:
-        paths: ['%kernel.project_dir%/src/Entity']
+        paths: 
+            - '%kernel.project_dir%/src/Entity'
+            - '%kernel.project_dir%/config/api_platform'
     patch_formats:
-        json: ['application/merge-patch+json']
+        json: [ 'application/merge-patch+json' ]
+        jsonapi: [ 'application/vnd.api+json' ]
+    formats:
+        jsonld: [ 'application/ld+json' ]
+        jsonapi: [ 'application/vnd.api+json' ]
+    
+    error_formats:
+        jsonld: [ 'application/ld+json' ]
+        jsonapi: [ 'application/vnd.api+json' ]
+    
     swagger:
         versions: [3]
     # Mercure integration, remove if unwanted
@@ -14,3 +25,4 @@ api_platform:
         stateless: true
         cache_headers:
             vary: ['Content-Type', 'Authorization', 'Origin']
+            

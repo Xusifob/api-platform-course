@@ -1,0 +1,8 @@
+product:
+    price:
+        min: Your price must be higher than {{ limit }}
+        not_null: Please set a price
+    description:
+        not_blank: Please write a description
+    name:
+        not_blank: Please write a product name
