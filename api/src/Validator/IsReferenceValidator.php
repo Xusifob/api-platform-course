@@ -2,24 +2,26 @@
 
 namespace App\Validator;
 
-use Doctrine\Common\Collections\Collection;
 use Symfony\Component\Validator\Constraint;
 use Symfony\Component\Validator\ConstraintValidator;
 
-class NotEmptyValidator extends ConstraintValidator
+class IsReferenceValidator extends ConstraintValidator
 {
+
+    private const PATTERN = "#^P\d{3,15}$#";
+
     /**
      * @param mixed $value
-     * @param NotEmpty $constraint
+     * @param IsReference $constraint
      */
     public function validate(mixed $value, Constraint $constraint)
     {
-
-        if (is_array($value) && count($value) > 0) {
+        if (!is_string($value)) {
+            $this->context->buildViolation($constraint->message)->addViolation();
             return;
         }
 
-        if ($value instanceof Collection && $value->count() > 0) {
+        if (preg_match(self::PATTERN, $value)) {
             return;
         }
 

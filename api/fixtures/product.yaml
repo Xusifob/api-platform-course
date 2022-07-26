@@ -4,3 +4,5 @@ App\Entity\Product:
         description: <text()>
         price: <numberBetween(10,1000)>
         categories: ['@product_category_1']
+        reference: 'P<numberBetween(1000,9999999999)>'
+

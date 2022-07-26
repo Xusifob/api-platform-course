@@ -11,7 +11,7 @@ database-create: ## [Development] Updates the SQL schema
 	docker-compose run --rm php php bin/console doctrine:database:create
 
 load-fixtures: ## [Development] Loads fixtures into the database
-	docker-compose run --rm php php bin/console doctrine:fixtures:load
+	docker-compose exec php php bin/console hautelook:fixtures:load --env=test --no-interaction
 
 run-command: ## [Development] Run a command inside docker
 	docker-compose run --rm php php bin/console ${command}
@@ -25,7 +25,7 @@ phpunit-now: ## [Development] Run a command inside docker
 create-migration: ## [Development] Generate a doctrine migration
 	make run-command command='doctrine:migrations:diff'
 
-run-migration: ## [Development] Run a doctrine migration
+migrate: ## [Development] Run a doctrine migration
 	make run-command command='doctrine:migrations:migrate --verbose --no-interaction'
 
 migration-sync:

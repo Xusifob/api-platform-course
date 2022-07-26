@@ -2,9 +2,7 @@
 
 namespace App\Serializer;
 
-use ApiPlatform\Metadata\Resource\Factory\AttributesResourceMetadataCollectionFactory;
 use ApiPlatform\Metadata\Resource\Factory\ResourceMetadataCollectionFactoryInterface;
-use ApiPlatform\Metadata\Resource\ResourceMetadataCollection;
 use ApiPlatform\Serializer\SerializerContextBuilderInterface;
 use Symfony\Component\HttpFoundation\Request;
 
@@ -32,7 +30,7 @@ class SerialisationGroupGenerator implements SerializerContextBuilderInterface
     {
         $context = $this->decorated->createFromRequest($request, $normalization, $extractedAttributes);
 
-        $groups = $this->buildGroupsFromRequest($request);
+        $groups = $this->buildGroupsFromRequest($request, $normalization);
 
         $context['groups'] = [...$context['groups'] ?? [], ...$groups];
 
@@ -40,15 +38,17 @@ class SerialisationGroupGenerator implements SerializerContextBuilderInterface
     }
 
 
-    private function buildGroupsFromRequest(Request $request): array
+    private function buildGroupsFromRequest(Request $request, bool $normalization): array
     {
         $shortName = $this->extractShortName($request);
         $operationType = $this->extractOperationType($request);
         $method = $this->extractMethod($request);
-
+        $process = $normalization ? "read" : "write";
 
         return [
+            $process,
             $shortName,
+            "$shortName:$process",
             "$shortName:$method",
             "$shortName:$operationType"
         ];

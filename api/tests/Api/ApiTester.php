@@ -121,7 +121,7 @@ abstract class ApiTester extends ApiTestCase
     {
         try {
             $response = $this->apiClient->request($method, $url, [
-                'json' => $this->formatData($json),
+                'json' => $json,
                 "headers" => $this->getHeaders()
             ]);
 
@@ -296,17 +296,45 @@ abstract class ApiTester extends ApiTestCase
         };
     }
 
-    private function formatData(array $data): array
+    protected function formatData(array $attributes, array $relationships = []): array
     {
         return match ($this->format) {
-            self::FORMAT_JSONLD => $data,
-            self::FORMAT_JSONAPI => isset($data['data']['attributes']) ? $data : [
-                "data" => [
-                    "attributes" => $data
-                ]
-            ],
-            default => $this->throwUnknownFormatException()
+            self::FORMAT_JSONLD => array_merge($attributes, $relationships),
+            self::FORMAT_JSONAPI => $this->formatDataForJsonApi($attributes, $relationships),
+            default => $this->throwUnknownFormatException(),
         };
+    }
+
+
+    #[ArrayShape(["data" => "array[]"])]
+    private function formatDataForJsonApi(array $attributes, array $relationships = []): array
+    {
+        $attributes = [
+            "data" => [
+                "attributes" => $attributes
+            ]
+        ];
+
+        if ($relationships) {
+            foreach ($relationships as &$relationship) {
+                if (is_array($relationship)) {
+                    foreach ($relationship as &$item) {
+                        $item = [
+                            "type" => $item,
+                            "id" => $item
+                        ];
+                    }
+                } else {
+                    $relationship = [
+                        "type" => $relationship,
+                        "id" => $relationship
+                    ];
+                }
+            }
+
+            $attributes['data']['relationships'] = $relationships;
+        }
+        return $attributes;
     }
 
 

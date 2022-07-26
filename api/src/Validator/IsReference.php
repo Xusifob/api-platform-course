@@ -6,7 +6,7 @@ use Attribute;
 use Symfony\Component\Validator\Constraint;
 
 #[Attribute(Attribute::TARGET_PROPERTY | Attribute::TARGET_METHOD)]
-class NotEmpty extends Constraint
+class IsReference extends Constraint
 {
     /*
      * Any public properties become valid options for the annotation.
@@ -21,7 +21,7 @@ class NotEmpty extends Constraint
         array $groups = null,
         mixed $payload = null
     ) {
-        if($message) {
+        if ($message) {
             $this->message = $message;
         }
         parent::__construct($options, $groups, $payload);

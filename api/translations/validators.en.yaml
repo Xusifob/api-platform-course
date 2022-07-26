@@ -6,5 +6,7 @@ product:
         not_blank: Please write a description
     name:
         not_blank: Please write a product name
+    reference:
+        invalid: Please write a valid reference
     category:
         not_null: Please choose a category

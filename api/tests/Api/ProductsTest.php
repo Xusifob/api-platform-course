@@ -61,11 +61,12 @@ class ProductsTest extends ApiTester
 
         $this->assertHasViolations(
             $data,
-            ['description', "name", "price", "categories"],
+            ['description', "name", "price", "categories","reference"],
             [
                 "product.price.not_null",
                 "product.name.not_blank",
                 "product.category.not_null",
+                "product.reference.invalid",
                 "product.description.not_blank"
             ]
         );
@@ -73,65 +74,33 @@ class ProductsTest extends ApiTester
 
     /**
      *
-     **/
-    #[NoReturn]
-    public function testCreateProductJsonld(): void
-    {
-        $category = $this->getEntity(ProductCategory::class);
-
-        $postData = [
-            "name" => "My awesome product",
-            "description" => "My description",
-            "price" => 333,
-            "categories" => [
-                $this->getEntityUri($category)
-            ]
-        ];
-
-        $data = $this->post(
-            "/products",
-            $postData
-        );
-
-        $this->assertResponseIsSuccessful();
-
-        unset($postData['categories']);
-        $this->assertResponseHasPostData($data, $postData);
-    }
-
-
-    /**
+     *
+     * @dataProvider getFormats
      *
      **/
     #[NoReturn]
-    public function testCreateProductJsonApi(): void
+    public function testCreateProduct(string $format): void
     {
-        $this->format = self::FORMAT_JSONAPI;
+        $this->format = $format;
 
         $category = $this->getEntity(ProductCategory::class);
 
-        $postData = [
-            "data" => [
-                "attributes" => [
-                    "name" => "My awesome product",
-                    "description" => "My description",
-                    "price" => 333,
-                ],
-                "relationships" => [
-                    "categories" => [
-                        [
-                            "type" => $this->getShortName($category),
-                            "id" => $this->getEntityUri($category)
-                        ]
-                    ]
-                ]
-            ],
-        ];
+        $postData = $this->formatData([
+            "name" => "My awesome product",
+            "description" => "My description",
+            "price" => 333,
+            "reference" => Product::generateReference()
+        ], [
+            "categories" => [
+                $this->getEntityUri($category)
+            ]
+        ]);
 
         $data = $this->post("/products", $postData);
 
         $this->assertResponseIsSuccessful();
 
+        unset($postData['categories']);
         $this->assertResponseHasPostData($data, $postData);
     }
 
@@ -148,9 +117,9 @@ class ProductsTest extends ApiTester
 
         $this->format = $format;
 
-        $postData = [
+        $postData = $this->formatData([
             "name" => "My new name",
-        ];
+        ]);
 
         $data = $this->put($product, $postData);
 
