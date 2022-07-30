@@ -1,0 +1,36 @@
+composer-require: ## [Development] Install a new composer package
+	docker-compose run --rm php composer require ${package}
+
+composer-require-dev: ## [Development] Install a new composer package
+	docker-compose run --rm php composer require --dev ${package}
+
+composer-install: ## [Development] Runs composer install in the container to install backend dependencies
+	docker-compose run --rm php composer install
+
+composer-update: ## [Development] Runs composer install in the container to install backend dependencies
+	docker-compose run --rm php composer update
+
+create-migration: ## [Development] Generate a doctrine migration
+	make run-command command='doctrine:migrations:diff'
+
+migrate: ## [Development] Run a doctrine migration
+	make run-command command='doctrine:migrations:migrate --verbose --no-interaction'
+
+migration-sync:
+	make run-command command='doctrine:migrations:version --add --all'
+
+
+update-schema: ## [Development] Updates the SQL schema
+	make run-command='doctrine:schema:update --dump-sql --force'
+
+database-create: ## [Development] Updates the SQL schema
+	make run-command='bin/console doctrine:database:create'
+
+load-fixtures: ## [Development] Loads fixtures into the database
+	make run-command='bin/console hautelook:fixtures:load --no-interaction'
+
+clear-cache: ## [Development] Clears cache
+	make run-command command='cache:clear'
+
+run-command: ## [Development] Run a command inside docker
+	docker-compose run --rm php php bin/console ${command}

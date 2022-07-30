@@ -94,11 +94,11 @@ abstract class ApiTester extends ApiTestCase
     }
 
 
-    protected function get(IEntity|string $url): ?array
+    protected function get(IEntity|string $url, array $query = []): ?array
     {
         $url = $this->getUrl($url);
 
-        return $this->doRequest("GET", $url);
+        return $this->doRequest("GET", $url, $query);
     }
 
 
@@ -117,13 +117,21 @@ abstract class ApiTester extends ApiTestCase
         throw new \Exception("No url found for entity $url");
     }
 
-    private function doRequest(string $method, string $url, array $json = []): ?array
+    private function doRequest(string $method, string $url, array $data = []): ?array
     {
+        $params = [
+            "headers" => $this->getHeaders()
+        ];
+
+        if ($method === "GET") {
+            $params['query'] = $data;
+        } else {
+            $params['json'] = $data;
+        }
+
+
         try {
-            $response = $this->apiClient->request($method, $url, [
-                'json' => $json,
-                "headers" => $this->getHeaders()
-            ]);
+            $response = $this->apiClient->request($method, $url, $params);
 
             return json_decode($response->getContent(), true);
         } catch (HttpException|ClientException $exception) {
@@ -402,6 +410,57 @@ abstract class ApiTester extends ApiTestCase
         $iriConverter = self::getContainer()->get('api_platform.iri_converter');
 
         return $iriConverter->getIriFromResource($entity);
+    }
+
+
+    protected function getFormatCollection(array $collection): array
+    {
+        return match ($this->format) {
+            self::FORMAT_JSONLD => $collection['hydra:member'],
+            self::FORMAT_JSONAPI => $this->getJsonApiCollection($collection),
+        };
+    }
+
+
+    private function getJsonApiCollection(array $collection): array
+    {
+        $data = [];
+
+        foreach ($collection['data'] as $datum) {
+            $data[] = array_merge([
+                "id" => $datum['id'],
+                "type" => $datum['type']
+            ],
+                $datum['attributes'] ?? [],
+                $datum['relationships'] ?? [],
+            );
+        }
+
+        return $data;
+    }
+
+
+    /**
+     * @param array $collection
+     * @param string $key
+     * @param array|string $values
+     */
+    protected function assertCollectionKeyContains(
+        array $collection,
+        string $key,
+        array|string $values,
+    ): void {
+        if (is_string($values)) {
+            $values = [];
+        }
+
+        $collection = $this->getFormatCollection($collection);
+
+        $data = $this->getCollectionValue($collection, $key);
+
+        foreach ($values as $test) {
+            $this->assertContains($test, $data);
+        }
     }
 
 

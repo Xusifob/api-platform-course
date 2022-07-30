@@ -2,6 +2,8 @@
 
 namespace App\Entity;
 
+use ApiPlatform\Doctrine\Orm\Filter\SearchFilter;
+use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\ApiProperty;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Delete;
@@ -10,6 +12,8 @@ use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Link;
 use ApiPlatform\Metadata\Post;
 use ApiPlatform\Metadata\Put;
+use App\Entity\Trait\StatusTrait;
+use App\Filter\StatusEntityFilter;
 use App\Repository\ProductRepository;
 use App\Validator\IsReference;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -33,13 +37,17 @@ use Symfony\Component\Validator\Constraints as Assert;
     ])]
 #[ORM\Table(name: "product")]
 #[UniqueEntity(fields: "reference")]
-class Product extends Entity
+#[ApiFilter(StatusEntityFilter::class, properties: ['archived'])]
+class Product extends Entity implements IStatusEntity, INamedEntity
 {
 
+    use StatusTrait;
+
     #[Groups(["product:write", "read"])]
-    #[ORM\Column(type: 'string', nullable: false, length: 255)]
+    #[ORM\Column(type: 'string', length: 255, nullable: false)]
     #[ApiProperty(iris: "https://schema.org/name")]
     #[Assert\NotBlank(message: "product.name.not_blank")]
+    #[ApiFilter(SearchFilter::class, strategy: "start")]
     public ?string $name = null;
 
     #[Groups(["product:item"])]
@@ -62,6 +70,7 @@ class Product extends Entity
     #[ORM\ManyToMany(targetEntity: ProductCategory::class, inversedBy: "products", cascade: ["remove"])]
     #[ORM\JoinColumn(referencedColumnName: 'id', nullable: false)]
     #[Assert\Count(min: 1, minMessage: "product.category.not_null")]
+    #[ApiFilter(SearchFilter::class, properties: ['categories.name' => 'exact'])]
     private Collection $categories;
 
     #[Groups(["product:write", "read"])]
@@ -70,7 +79,6 @@ class Product extends Entity
     #[Assert\NotNull(message: "product.price.not_null")]
     #[Assert\Range(minMessage: "product.price.min", min: 0)]
     public ?int $price = null;
-
 
     #[Groups(["product"])]
     #[ORM\Column(type: 'smallint', nullable: true)]

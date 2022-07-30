@@ -1,0 +1,27 @@
+setup-test: migrate-test sync-test-metadata-storage load-test-fixtures clear-test-cache
+
+### Setup
+update-test-schema: ## Updates the SQL schema
+	make run-test-command command='doctrine:schema:update --force'
+
+migrate-test: ## [Development] Run a doctrine migration
+	make run-test-command command='doctrine:migrations:migrate --verbose --no-interaction'
+
+load-test-fixtures: ## Loads fixtures into the database
+	make run-test-command command='hautelook:fixtures:load --no-interaction'
+
+sync-test-metadata-storage: ## Ensures that the metadata storage is at the latest version.
+	make run-test-command command='doctrine:migrations:sync-metadata-storage'
+
+clear-test-cache:
+	make run-test-command command='cache:clear'
+
+phpunit: ## [Development] Run a command inside docker
+	docker-compose run --rm php bin/phpunit --testdox
+
+phpunit-now: ## [Development] Run a command inside docker
+	docker-compose exec php bin/phpunit --testdox --group=now
+
+
+run-test-command:
+	docker-compose run --rm php php bin/console $(command) --env=test

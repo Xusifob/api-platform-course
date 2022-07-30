@@ -5,7 +5,9 @@ namespace App\Entity;
 use Stringable;
 
 /**
- * Interface for all our entities
+ *
+ * @property string|null $id
+ *
  */
 interface IEntity extends Stringable
 {
@@ -15,10 +17,6 @@ interface IEntity extends Stringable
      * @return string|null
      */
     public function getId(): ?string;
-
-
-
-
 
 
 }

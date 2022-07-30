@@ -24,12 +24,59 @@ class ProductsTest extends ApiTester
     #[NoReturn]
     public function testGetProducts(string $format): void
     {
+        $this->deleteProduct();
+
         $this->format = $format;
 
         $data = $this->get("/products");
         $this->assertResponseIsSuccessful();
 
-        $this->assertGetCollectionCount(10, $data);
+        $this->assertGetCollectionCount(9, $data);
+    }
+
+
+    /**
+     *
+     * @dataProvider getFormats
+     *
+     **/
+    #[NoReturn]
+    public function testFilterProductsByName(string $format): void
+    {
+        $this->format = $format;
+
+        $data = $this->get("/products",[
+            "name" => "Enim ex"
+        ]);
+        $this->assertResponseIsSuccessful();
+
+        $this->assertGetCollectionCount(1, $data);
+
+        $this->assertCollectionKeyContains($data,"name","Enim ex eveniet facere.");
+
+    }
+
+
+    /**
+     *
+     * @dataProvider getFormats
+     *
+     **/
+    #[NoReturn]
+    public function testFilterProductsByStatus(string $format): void
+    {
+
+        $this->archiveProduct();
+
+        $this->format = $format;
+
+        $data = $this->get("/products",[
+            "archived" => true
+        ]);
+        $this->assertResponseIsSuccessful();
+
+        $this->assertGetCollectionCount(1, $data);
+
     }
 
 
@@ -61,7 +108,7 @@ class ProductsTest extends ApiTester
 
         $this->assertHasViolations(
             $data,
-            ['description', "name", "price", "categories","reference"],
+            ['description', "name", "price", "categories", "reference"],
             [
                 "product.price.not_null",
                 "product.name.not_blank",
@@ -139,6 +186,22 @@ class ProductsTest extends ApiTester
         $this->delete("/products/{$product->getId()}");
 
         $this->assertNull($this->getRepository()->findOneBy(['name' => $product->name]));
+    }
+
+    private function deleteProduct(): void
+    {
+        $product = $this->getProduct();
+        $product->delete();
+        $this->em->persist($product);
+        $this->em->flush();
+    }
+
+    private function archiveProduct(): void
+    {
+        $product = $this->getProduct();
+        $product->archive();
+        $this->em->persist($product);
+        $this->em->flush();
     }
 
     /**

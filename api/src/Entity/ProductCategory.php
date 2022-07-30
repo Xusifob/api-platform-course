@@ -3,6 +3,7 @@
 namespace App\Entity;
 
 
+use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\ApiProperty;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Delete;
@@ -11,6 +12,9 @@ use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Link;
 use ApiPlatform\Metadata\Post;
 use ApiPlatform\Metadata\Put;
+use App\Entity\Enum\EntityStatus;
+use App\Entity\Trait\StatusTrait;
+use App\Filter\StatusEntityFilter;
 use App\Repository\ProductCategoryRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -29,13 +33,16 @@ use Symfony\Component\Serializer\Annotation\Groups;
 ])]
 #[ApiResource(
     uriTemplate: '/product_categories/{productCategoryId}/products',
+    operations: [new GetCollection()],
     uriVariables: [
-        'productCategoryId' => new Link(fromClass: Product::class, toProperty: 'products'),
-    ],
-    operations: [new GetCollection()]
+        'productCategoryId' => new Link(toProperty: 'products', fromClass: Product::class),
+    ]
 )]
-class ProductCategory extends Entity
+#[ApiFilter(StatusEntityFilter::class, properties: ['archived'])]
+class ProductCategory extends Entity implements IStatusEntity, INamedEntity
 {
+
+    use StatusTrait;
 
     #[Groups(["product", "product_category"])]
     #[ORM\Column(type: 'string', nullable: false, length: 255)]
