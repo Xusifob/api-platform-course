@@ -28,6 +28,7 @@ class ProductsTest extends ApiTester
 
         $this->format = $format;
 
+        $this->login("customer");
         $data = $this->get("/products");
         $this->assertResponseIsSuccessful();
 
@@ -45,15 +46,15 @@ class ProductsTest extends ApiTester
     {
         $this->format = $format;
 
-        $data = $this->get("/products",[
+        $this->login("customer");
+        $data = $this->get("/products", [
             "name" => "Enim ex"
         ]);
         $this->assertResponseIsSuccessful();
 
         $this->assertGetCollectionCount(1, $data);
 
-        $this->assertCollectionKeyContains($data,"name","Enim ex eveniet facere.");
-
+        $this->assertCollectionKeyContains($data, "name", "Enim ex eveniet facere.");
     }
 
 
@@ -65,18 +66,17 @@ class ProductsTest extends ApiTester
     #[NoReturn]
     public function testFilterProductsByStatus(string $format): void
     {
-
         $this->archiveProduct();
 
         $this->format = $format;
 
-        $data = $this->get("/products",[
+        $this->login("customer");
+        $data = $this->get("/products", [
             "archived" => true
         ]);
         $this->assertResponseIsSuccessful();
 
         $this->assertGetCollectionCount(1, $data);
-
     }
 
 
@@ -89,6 +89,7 @@ class ProductsTest extends ApiTester
     {
         $product = $this->getProduct();
 
+        $this->login("customer");
         $this->get($product);
         $this->assertResponseIsSuccessful();
     }
@@ -104,6 +105,7 @@ class ProductsTest extends ApiTester
     {
         $this->format = $format;
 
+        $this->login("customer");
         $data = $this->post("/products");
 
         $this->assertHasViolations(
@@ -143,6 +145,7 @@ class ProductsTest extends ApiTester
             ]
         ]);
 
+        $this->login("customer");
         $data = $this->post("/products", $postData);
 
         $this->assertResponseIsSuccessful();
@@ -168,6 +171,7 @@ class ProductsTest extends ApiTester
             "name" => "My new name",
         ]);
 
+        $this->login("customer");
         $data = $this->put($product, $postData);
 
         $this->assertResponseIsSuccessful();
@@ -183,6 +187,7 @@ class ProductsTest extends ApiTester
     {
         $product = $this->getProduct();
 
+        $this->login("customer");
         $this->delete("/products/{$product->getId()}");
 
         $this->assertNull($this->getRepository()->findOneBy(['name' => $product->name]));

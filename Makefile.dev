@@ -1,3 +1,6 @@
+make-entity:
+	make run-command 'make:entity'
+
 composer-require: ## [Development] Install a new composer package
 	docker-compose run --rm php composer require ${package}
 

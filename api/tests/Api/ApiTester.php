@@ -6,9 +6,11 @@ use ApiPlatform\Api\IriConverterInterface;
 use ApiPlatform\Exception\ResourceClassNotFoundException;
 use ApiPlatform\Metadata\Resource\Factory\ResourceMetadataCollectionFactoryInterface;
 use ApiPlatform\Symfony\Bundle\Test\ApiTestCase;
+use ApiPlatform\Symfony\Bundle\Test\Client;
 use App\Entity\IEntity;
 use App\Repository\IRepository;
 use Doctrine\ORM\EntityManagerInterface;
+use Exception;
 use Hautelook\AliceBundle\PhpUnit\ReloadDatabaseTrait;
 use JetBrains\PhpStorm\ArrayShape;
 use Symfony\Component\HttpClient\Exception\ClientException;
@@ -22,7 +24,7 @@ abstract class ApiTester extends ApiTestCase
     use ReloadDatabaseTrait;
 
 
-    private $apiClient;
+    private Client $apiClient;
 
     public const FORMAT_JSONLD = "jsonld";
 
@@ -34,6 +36,9 @@ abstract class ApiTester extends ApiTestCase
     ];
 
     protected string $format = self::FORMAT_JSONLD;
+
+    // JWT TOKEN
+    protected ?string $token = null;
 
     protected TranslatorInterface $translator;
 
@@ -114,7 +119,7 @@ abstract class ApiTester extends ApiTestCase
             return $entityUrl;
         }
 
-        throw new \Exception("No url found for entity $url");
+        throw new Exception("No url found for entity $url");
     }
 
     private function doRequest(string $method, string $url, array $data = []): ?array
@@ -276,12 +281,19 @@ abstract class ApiTester extends ApiTestCase
 
 
     /**
-     * @throws \Exception
+     * @throws Exception
      */
     #[ArrayShape(['Content-Type' => "string", "Accept" => "string"])]
     private function getHeaders(): array
     {
-        return match ($this->format) {
+        $headers = [];
+
+
+        if ($this->token) {
+            $headers['Authorization'] = "Bearer $this->token";
+        }
+
+        $contentType = match ($this->format) {
             self::FORMAT_JSONLD => [
                 'Content-Type' => "application/ld+json",
                 "Accept" => "application/ld+json"
@@ -292,6 +304,8 @@ abstract class ApiTester extends ApiTestCase
             ],
             default => $this->throwUnknownFormatException()
         };
+
+        return array_merge($headers, $contentType);
     }
 
 
@@ -348,7 +362,7 @@ abstract class ApiTester extends ApiTestCase
 
     private function throwUnknownFormatException()
     {
-        throw new \Exception("Format $this->format unknown");
+        throw new Exception("Format $this->format unknown");
     }
 
 
@@ -441,6 +455,32 @@ abstract class ApiTester extends ApiTestCase
 
 
     /**
+     * @param string $username
+     * @param string $password
+     * @return array
+     * @throws Exception
+     */
+    protected function login(string $username, string $password = "myAwesomePassword"): array
+    {
+        $username = $this->resolveUsername($username);
+
+        $data = $this->post("login", [
+            "email" => $username,
+            "password" => $password,
+        ]);
+
+        // That'll do for now
+        if (!isset($data['token'])) {
+            throw new Exception($data['message']);
+        }
+
+        $this->token = $data['token'];
+
+        return $data;
+    }
+
+
+    /**
      * @param array $collection
      * @param string $key
      * @param array|string $values
@@ -461,6 +501,16 @@ abstract class ApiTester extends ApiTestCase
         foreach ($values as $test) {
             $this->assertContains($test, $data);
         }
+    }
+
+
+    private function resolveUsername(string $username): string
+    {
+        return match ($username) {
+            "admin" => "admin",
+            "customer" => "rubye76@api-platform-course.com",
+            default => $username
+        };
     }
 
 
