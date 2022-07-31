@@ -12,10 +12,8 @@ use Doctrine\Persistence\ObjectRepository;
 interface IRepository extends ObjectRepository
 {
 
-    public function add(IEntity $entity): void;
+    public function add(IEntity $entity, bool $flush = false): void;
 
-    public function update(IEntity $entity): void;
-
-    public function remove(IEntity $entity): void;
+    public function remove(IEntity $entity, bool $flush = false): void;
 
 }

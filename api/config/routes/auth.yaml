@@ -1,3 +1,9 @@
 jwt_authentication_token:
     path: /login
     methods: ['POST']
+
+api_refresh_token:
+    path: /token/refresh
+
+api_logout:
+    path: /logout

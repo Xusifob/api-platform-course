@@ -23,6 +23,7 @@ security:
             lazy: true
             provider: app_user_provider
             stateless: true
+            entry_point: jwt
             json_login:
                 check_path: /login
                 username_path: email
@@ -31,12 +32,16 @@ security:
                 failure_handler: lexik_jwt_authentication.handler.authentication_failure
             jwt: ~
             switch_user: { role: ROLE_ALLOWED_TO_SWITCH, parameter: 'X-Switch-User' }
-    
-    
-    
+            refresh_jwt:
+                check_path: api_refresh_token
+                provider: app_user_provider
+            logout:
+                path: api_logout
+            
     access_control:
         - { path: ^/docs, roles: PUBLIC_ACCESS } # Allows accessing the Swagger UI
         - { path: ^/login, roles: PUBLIC_ACCESS }
+        - { path: ^/api/(login|token/refresh), roles: PUBLIC_ACCESS }
         - { path: ^/, roles: IS_AUTHENTICATED_FULLY }
 
 when@test:

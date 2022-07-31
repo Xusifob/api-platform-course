@@ -18,8 +18,9 @@ class AuthenticationTest extends ApiTester
     public function testLogin(string $username): void
     {
         $data = $this->login($username);
+        $this->assertResponseIsSuccessful();
 
-        $this->assertArrayHasKey("token", $data);
+        $this->assertArrayHasKeys(["token", "refresh_token", "refresh_token_expiration"], $data);
     }
 
 
@@ -32,8 +33,27 @@ class AuthenticationTest extends ApiTester
         $this->expectExceptionMessage("Invalid credentials.");
 
         $data = $this->login($username, "toto");
+        $this->assertResponseIsUnauthorized();
 
         $this->assertArrayHasKey("token", $data);
+    }
+
+
+    /**
+     * @dataProvider getLoginValues
+     */
+    public function testRefreshToken(string $username): void
+    {
+        $data = $this->login($username);
+
+        $this->assertArrayHasKeys(["refresh_token"], $data);
+
+        $data = $this->post("/token/refresh", [
+            "refresh_token" => $data['refresh_token']
+        ]);
+        $this->assertResponseIsSuccessful();
+
+        $this->assertArrayHasKeys(["token", "refresh_token", "refresh_token_expiration"], $data);
     }
 
 

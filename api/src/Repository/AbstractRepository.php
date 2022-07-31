@@ -4,31 +4,34 @@ namespace App\Repository;
 
 
 use App\Entity\IEntity;
-use Doctrine\ORM\EntityRepository;
+use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\Persistence\ManagerRegistry;
 
 
-abstract class AbstractRepository extends EntityRepository implements IRepository
+abstract class AbstractRepository extends ServiceEntityRepository implements IRepository
 {
 
-    public function add(IEntity $entity): void
+    public function __construct(ManagerRegistry $registry)
     {
-        $this->_em->persist($entity);
-        $this->_em->flush();
-
+        parent::__construct($registry, $this->getClassName());
     }
 
 
-    public function update(IEntity $entity): void
+    public function add(IEntity $entity, bool $flush = false): void
     {
         $this->_em->persist($entity);
-        $this->_em->flush();
+        if ($flush) {
+            $this->_em->flush();
+        }
     }
 
 
-    public function remove(IEntity $entity): void
+    public function remove(IEntity $entity, bool $flush = false): void
     {
         $this->_em->remove($entity);
-        $this->_em->flush();
+        if ($flush) {
+            $this->_em->flush();
+        }
     }
 
 

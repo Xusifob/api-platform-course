@@ -145,6 +145,14 @@ abstract class ApiTester extends ApiTestCase
     }
 
 
+    public function assertArrayHasKeys(array $keys, array $array): void
+    {
+        foreach ($keys as $key) {
+            $this->assertArrayHasKey($key, $array);
+        }
+    }
+
+
     public function assertResponseHasPostData(array $data, array $postData): void
     {
         match ($this->format) {
@@ -165,6 +173,11 @@ abstract class ApiTester extends ApiTestCase
     public function assertResponseIsNotFound()
     {
         $this->assertResponseStatusCodeSame(Response::HTTP_NOT_FOUND);
+    }
+
+    public function assertResponseIsUnauthorized()
+    {
+        $this->assertResponseStatusCodeSame(Response::HTTP_UNAUTHORIZED);
     }
 
 
