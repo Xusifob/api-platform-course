@@ -8,6 +8,8 @@ use Doctrine\ORM\Mapping as ORM;
 
 use Symfony\Bridge\Doctrine\IdGenerator\UuidGenerator;
 
+use Symfony\Component\Serializer\Annotation\Groups;
+
 use function Symfony\Component\String\u;
 
 
@@ -20,6 +22,7 @@ trait EntityTrait
     #[ORM\Id]
     #[ORM\Column(type: 'uuid', unique: true, nullable: false)]
     #[ApiProperty(iris: "https://schema.org/identifier")]
+    #[Groups(["read"])]
     #[ORM\GeneratedValue(strategy: "CUSTOM")]
     #[ORM\CustomIdGenerator(class: UuidGenerator::class)]
     protected $id;

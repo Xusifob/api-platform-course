@@ -11,5 +11,5 @@ App\Entity\User:
         familyName: <lastName()>
         plainPassword: "myAwesomePassword" 
         email: "<username()>\\@api-platform-course.com"
-        role: 'ROLE_CLIENT'
+        role: 'ROLE_CUSTOMER'
 

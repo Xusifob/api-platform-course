@@ -2,23 +2,33 @@
 
 namespace App\Entity;
 
+use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Get;
 use App\Entity\Enum\UserRole;
 use App\Entity\Trait\StatusTrait;
 use App\Repository\UserRepository;
+use App\State\User\MeProvider;
 use DateTimeInterface;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
+use Symfony\Component\Serializer\Annotation\Groups;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[ORM\Table(name: '`user`')]
+#[ApiResource(
+    uriTemplate: '/users/me',
+    operations: [new Get()],
+    provider: MeProvider::class
+)]
 #[ORM\EntityListeners(["App\Doctrine\EntityListener\UserListener"])]
 class User extends Entity implements IEntity, IStatusEntity, UserInterface, PasswordAuthenticatedUserInterface
 {
 
     use StatusTrait;
 
+    #[Groups(["user:item"])]
     #[ORM\Column(length: 180, unique: true)]
     public ?string $email = null;
 
@@ -36,12 +46,15 @@ class User extends Entity implements IEntity, IStatusEntity, UserInterface, Pass
 
     public ?string $plainPassword = null;
 
+    #[Groups(["user:item"])]
     #[ORM\Column(length: 255, nullable: true)]
     public ?string $givenName = null;
 
+    #[Groups(["user:item"])]
     #[ORM\Column(length: 255, nullable: true)]
     public ?string $familyName = null;
 
+    #[Groups(["user:item"])]
     #[ORM\Column(type: Types::DATE_MUTABLE, nullable: true)]
     public ?DateTimeInterface $birthDate = null;
 
@@ -91,6 +104,7 @@ class User extends Entity implements IEntity, IStatusEntity, UserInterface, Pass
     }
 
 
+    #[Groups(["user:item"])]
     public function getRole(): UserRole
     {
         $role = $this->getRoles()[0];

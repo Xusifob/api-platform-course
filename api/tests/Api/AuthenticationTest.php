@@ -17,10 +17,14 @@ class AuthenticationTest extends ApiTester
      */
     public function testLogin(string $username): void
     {
+        $username = $this->resolveUsername($username);
         $data = $this->login($username);
         $this->assertResponseIsSuccessful();
 
         $this->assertArrayHasKeys(["token", "refresh_token", "refresh_token_expiration"], $data);
+
+        $data = $this->get("users/me");
+        $this->assertEquals($username, $data['email']);
     }
 
 
@@ -44,6 +48,7 @@ class AuthenticationTest extends ApiTester
      */
     public function testRefreshToken(string $username): void
     {
+        $username = $this->resolveUsername($username);
         $data = $this->login($username);
 
         $this->assertArrayHasKeys(["refresh_token"], $data);
@@ -51,9 +56,48 @@ class AuthenticationTest extends ApiTester
         $data = $this->post("/token/refresh", [
             "refresh_token" => $data['refresh_token']
         ]);
+
+        $this->token = $data['token'];
+
         $this->assertResponseIsSuccessful();
 
         $this->assertArrayHasKeys(["token", "refresh_token", "refresh_token_expiration"], $data);
+
+        $data = $this->get("users/me");
+        $this->assertEquals($username, $data['email']);
+    }
+
+
+    public function testImpersonating(): void
+    {
+        $this->login("admin");
+        $usernameToImpersonate = "mayert.olaf@api-platform-course.com";
+
+        $data = $this->get("users/me", [], [
+            "headers" => [
+                "X-switch-User" => $usernameToImpersonate
+            ]
+        ]);
+
+        $this->assertResponseIsSuccessful();
+
+        $this->assertEquals($usernameToImpersonate, $data['email']);
+    }
+
+
+    public function testImpersonatingForbidden(): void
+    {
+        $this->login("customer");
+
+        $usernameToImpersonate = "pfeffer.eva@api-platform-course.com";
+
+        $this->get("users/me", [], [
+            "headers" => [
+                "X-switch-User" => $usernameToImpersonate
+            ]
+        ]);
+
+        $this->assertResponseForbidden();
     }
 
 
@@ -61,8 +105,8 @@ class AuthenticationTest extends ApiTester
     public function getLoginValues(): array
     {
         return [
-            "admin" => ["admin@api-platform-course.com"],
-            "client" => ["mayert.olaf@api-platform-course.com"]
+            "admin" => ["admin"],
+            "customer" => ["customer"]
         ];
     }
 

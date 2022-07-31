@@ -99,11 +99,11 @@ abstract class ApiTester extends ApiTestCase
     }
 
 
-    protected function get(IEntity|string $url, array $query = []): ?array
+    protected function get(IEntity|string $url, array $query = [],array $options = []): ?array
     {
         $url = $this->getUrl($url);
 
-        return $this->doRequest("GET", $url, $query);
+        return $this->doRequest("GET", $url, $query,$options);
     }
 
 
@@ -122,10 +122,10 @@ abstract class ApiTester extends ApiTestCase
         throw new Exception("No url found for entity $url");
     }
 
-    private function doRequest(string $method, string $url, array $data = []): ?array
+    private function doRequest(string $method, string $url, array $data = [],array $options = []): ?array
     {
         $params = [
-            "headers" => $this->getHeaders()
+            "headers" => $this->getHeaders($options['headers'] ?? [])
         ];
 
         if ($method === "GET") {
@@ -173,6 +173,11 @@ abstract class ApiTester extends ApiTestCase
     public function assertResponseIsNotFound()
     {
         $this->assertResponseStatusCodeSame(Response::HTTP_NOT_FOUND);
+    }
+
+    public function assertResponseForbidden()
+    {
+        $this->assertResponseStatusCodeSame(Response::HTTP_FORBIDDEN);
     }
 
     public function assertResponseIsUnauthorized()
@@ -297,10 +302,8 @@ abstract class ApiTester extends ApiTestCase
      * @throws Exception
      */
     #[ArrayShape(['Content-Type' => "string", "Accept" => "string"])]
-    private function getHeaders(): array
+    private function getHeaders(array $headers = []): array
     {
-        $headers = [];
-
 
         if ($this->token) {
             $headers['Authorization'] = "Bearer $this->token";
@@ -517,11 +520,11 @@ abstract class ApiTester extends ApiTestCase
     }
 
 
-    private function resolveUsername(string $username): string
+    protected function resolveUsername(string $username): string
     {
         return match ($username) {
-            "admin" => "admin",
-            "customer" => "rubye76@api-platform-course.com",
+            "admin" => "admin@api-platform-course.com",
+            "customer" => "mayert.olaf@api-platform-course.com",
             default => $username
         };
     }
