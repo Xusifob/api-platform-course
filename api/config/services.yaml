@@ -28,7 +28,6 @@ services:
     ### Documentation
     App\OpenApi\AuthDecorator:
         decorates: 'api_platform.openapi.factory'
-        arguments: [ '@.inner' ]
 
 
 
@@ -36,3 +35,10 @@ services:
     App\Doctrine\EntityListener\UserListener:
         tags:
             - { name: doctrine.orm.entity_listener, priority: 10 }
+
+
+
+    ### State Processors
+    App\State\User\UserProcessor:
+        bind:
+            $decorated: '@ApiPlatform\Doctrine\Common\State\PersistProcessor'

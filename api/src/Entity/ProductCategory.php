@@ -12,7 +12,6 @@ use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Link;
 use ApiPlatform\Metadata\Post;
 use ApiPlatform\Metadata\Put;
-use App\Entity\Enum\EntityStatus;
 use App\Entity\Trait\StatusTrait;
 use App\Filter\StatusEntityFilter;
 use App\Repository\ProductCategoryRepository;
@@ -24,12 +23,11 @@ use Symfony\Component\Serializer\Annotation\Groups;
 #[ORM\Entity(repositoryClass: ProductCategoryRepository::class)]
 #[ORM\Table(name: "product_category")]
 #[ApiResource(operations: [
-    new GetCollection(),
-    new Get(),
-    new Post(),
-    new Post(),
-    new Put(),
-    new Delete()
+    new GetCollection(security: "is_granted('PUBLIC_ACCESS')"),
+    new Get(security: "is_granted('VIEW',object)"),
+    new Post(securityPostDenormalize: "is_granted('CREATE',object)"),
+    new Put(security: "is_granted('UPDATE',object)"),
+    new Delete(security: "is_granted('DELETE',object)")
 ])]
 #[ApiResource(
     uriTemplate: '/product_categories/{productCategoryId}/products',

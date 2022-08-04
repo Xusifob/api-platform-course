@@ -1,0 +1,11 @@
+App\Entity\Notification:
+    notification_1:
+        type: 'WELCOME'
+        url: "/getting-started"
+        read: false
+        owner: '@customer_1'
+    notification_2:
+        type: 'WELCOME'
+        url: "/getting-started"
+        read: true
+        owner: '@customer_2'

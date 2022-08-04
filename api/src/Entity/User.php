@@ -4,10 +4,14 @@ namespace App\Entity;
 
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
+use ApiPlatform\Metadata\GetCollection;
+use ApiPlatform\Metadata\Post;
+use App\Doctrine\EntityListener\UserListener;
 use App\Entity\Enum\UserRole;
 use App\Entity\Trait\StatusTrait;
 use App\Repository\UserRepository;
 use App\State\User\MeProvider;
+use App\State\User\UserProcessor;
 use DateTimeInterface;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
@@ -22,7 +26,18 @@ use Symfony\Component\Serializer\Annotation\Groups;
     operations: [new Get()],
     provider: MeProvider::class
 )]
-#[ORM\EntityListeners(["App\Doctrine\EntityListener\UserListener"])]
+#[ApiResource(
+    uriTemplate: '/users',
+    operations: [new Post()],
+    processor: UserProcessor::class
+)]
+#[ApiResource(
+    operations: [
+        new GetCollection(),
+        new Get(),
+    ],
+)]
+#[ORM\EntityListeners([UserListener::class])]
 class User extends Entity implements IEntity, IStatusEntity, UserInterface, PasswordAuthenticatedUserInterface
 {
 
@@ -44,6 +59,7 @@ class User extends Entity implements IEntity, IStatusEntity, UserInterface, Pass
     #[ORM\Column(name: "password", nullable: false)]
     private ?string $password = null;
 
+    #[Groups("user:post")]
     public ?string $plainPassword = null;
 
     #[Groups(["user:item"])]
@@ -62,6 +78,13 @@ class User extends Entity implements IEntity, IStatusEntity, UserInterface, Pass
     {
         return $this->id;
     }
+
+
+    public function getFullName(): string
+    {
+        return "$this->givenName $this->familyName";
+    }
+
 
     /**
      * A visual identifier that represents this user.
@@ -137,7 +160,24 @@ class User extends Entity implements IEntity, IStatusEntity, UserInterface, Pass
 
     public function __toString(): string
     {
-        return "$this->givenName $this->familyName";
+        return $this->getFullName();
     }
+
+
+    private function isRole(UserRole $role): bool
+    {
+        return in_array($role->value, $this->roles);
+    }
+
+    public function isAdmin(): bool
+    {
+        return $this->isRole(UserRole::ROLE_ADMIN);
+    }
+
+    public function isCustomer(): bool
+    {
+        return $this->isRole(UserRole::ROLE_CUSTOMER);
+    }
+
 
 }

@@ -1,5 +1,7 @@
 when@dev: &dev
     nelmio_alice:
+        locale: 'en_US'
+        seed: 1
         functions_blacklist:
             - 'current'
             - 'shuffle'

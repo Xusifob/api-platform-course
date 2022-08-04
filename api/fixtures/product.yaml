@@ -5,4 +5,20 @@ App\Entity\Product:
         price: <numberBetween(10,1000)>
         categories: ['@product_category_1']
         reference: 'P<numberBetween(1000,9999999999)>'
+    
+    product_archived:
+        name: <sentence(4)>
+        description: <text()>
+        price: <numberBetween(10,1000)>
+        status: 2
+        categories: ['@product_category_1']
+        reference: 'P2222222222'
+        
+    product_deleted:
+        name: <sentence(4)>
+        description: <text()>
+        price: <numberBetween(10,1000)>
+        status: 3
+        categories: ['@product_category_1']
+        reference: 'P3333333333'
 

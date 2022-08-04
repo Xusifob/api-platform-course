@@ -4,15 +4,14 @@ namespace App\Extension;
 
 use ApiPlatform\Doctrine\Orm\Extension\QueryCollectionExtensionInterface;
 use ApiPlatform\Doctrine\Orm\Extension\QueryItemExtensionInterface;
-use ApiPlatform\Doctrine\Orm\Util\QueryNameGenerator;
 use ApiPlatform\Doctrine\Orm\Util\QueryNameGeneratorInterface;
 use ApiPlatform\Metadata\Operation;
 use App\Entity\Enum\EntityStatus;
 use App\Entity\IStatusEntity;
-use App\Entity\Product;
 use Doctrine\ORM\QueryBuilder;
 
-final class StatusEntityExtension implements QueryCollectionExtensionInterface, QueryItemExtensionInterface
+final class StatusEntityExtension extends AbstractExtension implements QueryCollectionExtensionInterface,
+                                                                       QueryItemExtensionInterface
 {
 
     public function applyToCollection(
@@ -22,7 +21,6 @@ final class StatusEntityExtension implements QueryCollectionExtensionInterface, 
         Operation $operation = null,
         array $context = []
     ): void {
-
         if (!$this->supports($resourceClass, $operation, $context)) {
             return;
         }
@@ -59,20 +57,6 @@ final class StatusEntityExtension implements QueryCollectionExtensionInterface, 
     private function supports(string $resourceClass, Operation $operation, array $context = []): bool
     {
         return self::implements($resourceClass, IStatusEntity::class);
-    }
-
-
-    /**
-     * @param string $resourceClass
-     * @param string $interface
-     * @return bool
-     * @throws \ReflectionException
-     */
-    public static function implements(string $resourceClass, string $interface): bool
-    {
-        $class = new \ReflectionClass($resourceClass);
-
-        return $class->implementsInterface($interface);
     }
 
 }

@@ -2,3 +2,12 @@ App\Entity\ProductCategory:
     product_category_{1..2}:
         name: <sentence(4)>
         description: <text()>
+        status: 1
+    product_category_archived:
+        name: <sentence(4)>
+        description: <text()>
+        status: 2
+    product_category_deleted:
+        name: <sentence(4)>
+        description: <text()>
+        status: 3

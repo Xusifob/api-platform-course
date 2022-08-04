@@ -2,6 +2,7 @@
 
 namespace App\Tests\Api;
 
+use App\Entity\Enum\EntityStatus;
 use App\Entity\Product;
 use App\Entity\ProductCategory;
 use JetBrains\PhpStorm\NoReturn;
@@ -24,15 +25,12 @@ class ProductsTest extends ApiTester
     #[NoReturn]
     public function testGetProducts(string $format): void
     {
-        $this->deleteProduct();
-
         $this->format = $format;
 
-        $this->login("customer");
         $data = $this->get("/products");
         $this->assertResponseIsSuccessful();
 
-        $this->assertGetCollectionCount(9, $data);
+        $this->assertGetCollectionCount(11, $data);
     }
 
 
@@ -46,15 +44,18 @@ class ProductsTest extends ApiTester
     {
         $this->format = $format;
 
-        $this->login("customer");
+        $product = $this->getProduct();
+
+        $name = substr($product->name, 0, 10);
+
         $data = $this->get("/products", [
-            "name" => "Enim ex"
+            "name" => $name
         ]);
         $this->assertResponseIsSuccessful();
 
         $this->assertGetCollectionCount(1, $data);
 
-        $this->assertCollectionKeyContains($data, "name", "Enim ex eveniet facere.");
+        $this->assertCollectionKeyContains($data, "name", $product->name);
     }
 
 
@@ -66,8 +67,6 @@ class ProductsTest extends ApiTester
     #[NoReturn]
     public function testFilterProductsByStatus(string $format): void
     {
-        $this->archiveProduct();
-
         $this->format = $format;
 
         $this->login("customer");
@@ -80,18 +79,38 @@ class ProductsTest extends ApiTester
     }
 
 
-    /**
-     *
-     *
-     **/
     #[NoReturn]
     public function testGetProduct(): void
     {
         $product = $this->getProduct();
 
-        $this->login("customer");
         $this->get($product);
         $this->assertResponseIsSuccessful();
+    }
+
+
+    #[NoReturn]
+    public function testGetProductByReferenceNumber(): void
+    {
+        $product = $this->getProduct();
+
+        $this->login("customer");
+        $data = $this->get("products/{$product->reference}");
+        $this->assertResponseIsSuccessful();
+
+        $this->assertEquals($product->reference, $data['reference']);
+    }
+
+
+    public function testCreateProductForbidden(): void
+    {
+        $this->login("customer");
+        $this->post("/products", [
+            "name" => "Test Product",
+            "reference" => "TEST-PRODUCT",
+            "description" => "Test Product Description",
+        ]);
+        $this->assertResponseForbidden();
     }
 
 
@@ -105,7 +124,7 @@ class ProductsTest extends ApiTester
     {
         $this->format = $format;
 
-        $this->login("customer");
+        $this->login("admin");
         $data = $this->post("/products");
 
         $this->assertHasViolations(
@@ -122,7 +141,6 @@ class ProductsTest extends ApiTester
     }
 
     /**
-     *
      *
      * @dataProvider getFormats
      *
@@ -145,7 +163,7 @@ class ProductsTest extends ApiTester
             ]
         ]);
 
-        $this->login("customer");
+        $this->login("admin");
         $data = $this->post("/products", $postData);
 
         $this->assertResponseIsSuccessful();
@@ -154,6 +172,17 @@ class ProductsTest extends ApiTester
         $this->assertResponseHasPostData($data, $postData);
     }
 
+
+    public function testUpdateProductForbidden(): void
+    {
+        $this->login("customer");
+        $product = $this->getProduct();
+        $this->put($product, [
+            "name" => "Test Product",
+            "description" => "Test Product Description",
+        ]);
+        $this->assertResponseForbidden();
+    }
 
     /**
      *
@@ -171,12 +200,21 @@ class ProductsTest extends ApiTester
             "name" => "My new name",
         ]);
 
-        $this->login("customer");
+        $this->login("admin");
         $data = $this->put($product, $postData);
 
         $this->assertResponseIsSuccessful();
 
         $this->assertResponseHasPostData($data, $postData);
+    }
+
+
+    public function testDeleteProductForbidden(): void
+    {
+        $this->login("customer");
+        $product = $this->getProduct();
+        $this->delete($product);
+        $this->assertResponseForbidden();
     }
 
     /**
@@ -187,26 +225,10 @@ class ProductsTest extends ApiTester
     {
         $product = $this->getProduct();
 
-        $this->login("customer");
-        $this->delete("/products/{$product->getId()}");
+        $this->login("admin");
+        $this->delete($product);
 
         $this->assertNull($this->getRepository()->findOneBy(['name' => $product->name]));
-    }
-
-    private function deleteProduct(): void
-    {
-        $product = $this->getProduct();
-        $product->delete();
-        $this->em->persist($product);
-        $this->em->flush();
-    }
-
-    private function archiveProduct(): void
-    {
-        $product = $this->getProduct();
-        $product->archive();
-        $this->em->persist($product);
-        $this->em->flush();
     }
 
     /**
@@ -214,7 +236,7 @@ class ProductsTest extends ApiTester
      */
     private function getProduct(): Product
     {
-        return $this->getEntity();
+        return $this->getRepository($this->getDefaultClass())->findOneBy(["status" => EntityStatus::ACTIVE]);
     }
 
 }

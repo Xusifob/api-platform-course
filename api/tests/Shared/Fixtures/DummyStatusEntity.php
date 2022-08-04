@@ -14,15 +14,10 @@ use Symfony\Component\Validator\Constraints as Assert;
 
 #[ApiResource()]
 #[ORM\Entity]
-class DummyStatusEntity implements IStatusEntity
+class DummyStatusEntity extends Dummy implements IStatusEntity
 {
 
     use StatusTrait;
-
-    #[ORM\Column(type: 'uuid', unique: true, nullable: false)]
-    #[ORM\Id]
-    #[ORM\GeneratedValue(strategy: 'AUTO')]
-    public string $id;
 
     /**
      * @var string The dummy name

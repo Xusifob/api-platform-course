@@ -71,7 +71,7 @@ class AuthenticationTest extends ApiTester
     public function testImpersonating(): void
     {
         $this->login("admin");
-        $usernameToImpersonate = "mayert.olaf@api-platform-course.com";
+        $usernameToImpersonate = "customer1@api-platform-course.com";
 
         $data = $this->get("users/me", [], [
             "headers" => [
@@ -89,7 +89,7 @@ class AuthenticationTest extends ApiTester
     {
         $this->login("customer");
 
-        $usernameToImpersonate = "pfeffer.eva@api-platform-course.com";
+        $usernameToImpersonate = "customer2@api-platform-course.com";
 
         $this->get("users/me", [], [
             "headers" => [

@@ -6,19 +6,18 @@ namespace App\Tests\Shared\Fixtures;
 
 use ApiPlatform\Metadata\ApiProperty;
 use ApiPlatform\Metadata\ApiResource;
+use App\Entity\IEntity;
+use App\Entity\Trait\EntityTrait;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
 
 
 #[ApiResource()]
 #[ORM\Entity]
-class Dummy
+class Dummy implements IEntity
 {
 
-    #[ORM\Column(type: 'uuid', unique: true, nullable: false)]
-    #[ORM\Id]
-    #[ORM\GeneratedValue(strategy: 'AUTO')]
-    public string $id;
+    use EntityTrait;
 
     /**
      * @var string The dummy name
@@ -27,5 +26,16 @@ class Dummy
     #[ORM\Column]
     #[Assert\NotBlank]
     public string $name;
+
+    public function __construct(array $data = [])
+    {
+        $this->setEntityData($data);
+    }
+
+    public function getId(): ?string
+    {
+        return $this->id;
+    }
+
 
 }

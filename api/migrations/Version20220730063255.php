@@ -21,8 +21,12 @@ final class Version20220730063255 extends AbstractMigration
     public function up(Schema $schema): void
     {
         // this up() migration is auto-generated, please modify it to your needs
-        $this->addSql('ALTER TABLE product ADD status SMALLINT NOT NULL default 1');
-        $this->addSql('ALTER TABLE product_category ADD status SMALLINT NOT NULL default 1');
+        $this->addSql('ALTER TABLE product ADD status SMALLINT NOT NULL DEFAULT 1');
+        $this->addSql('ALTER TABLE product_category ADD status SMALLINT NOT NULL DEFAULT 1');
+
+        // Once we set the default, we can remove it
+        $this->addSql('ALTER TABLE product ALTER status DROP DEFAULT');
+        $this->addSql('ALTER TABLE product_category ALTER status DROP DEFAULT');
     }
 
     public function down(Schema $schema): void

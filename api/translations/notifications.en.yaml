@@ -1,0 +1,10 @@
+type:
+    new_order:
+        title: You have a new order
+        description: Your new order has been confirmed by our services
+    welcome:
+        title: Welcome to our app
+        description: Click here to check all features
+    new_product_sale:
+        title: A new product is in sale
+        description: Check out our latest products in sale

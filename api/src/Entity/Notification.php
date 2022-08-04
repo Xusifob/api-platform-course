@@ -2,51 +2,48 @@
 
 namespace App\Entity;
 
-use ApiPlatform\Metadata\ApiProperty;
 use ApiPlatform\Metadata\ApiResource;
-use ApiPlatform\Metadata\Delete;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
-use ApiPlatform\Metadata\Link;
-use ApiPlatform\Metadata\Post;
 use ApiPlatform\Metadata\Put;
 use App\Entity\Enum\NotificationType;
-use App\Repository\ProductRepository;
-use App\Validator\IsReference;
-use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\Common\Collections\Collection;
+use App\Entity\Trait\OwnedTrait;
 use Doctrine\ORM\Mapping as ORM;
-use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Serializer\Annotation\Groups;
-use Symfony\Component\Serializer\Annotation\SerializedName;
-use Symfony\Component\Validator\Constraints as Assert;
-
 
 #[ORM\Entity()]
 #[ApiResource(
     operations: [
         new GetCollection(),
         new Get(),
-        new Post(),
-        new Post(),
-        new Put(),
-        new Delete()
+        new Put()
     ])]
 #[ORM\Table(name: "notification")]
-class Notification extends Entity implements \Stringable
+class Notification extends Entity implements IOwnedEntity
 {
 
+    use OwnedTrait;
+
     #[Groups(["read"])]
-    #[ORM\Column(type: 'string', length: 30, nullable: false)]
-    #[Assert\NotNull(message: "notification.type.not_null")]
-    public NotificationType $type;
+    #[ORM\Column(type: 'string', length: 30, nullable: false,enumType: NotificationType::class)]
+    public readonly NotificationType $type;
 
 
-    #[Groups(["notification:write", "read"])]
+    #[Groups(["read", "notification:put"])]
     #[ORM\Column(type: 'boolean', nullable: false)]
-    #[Assert\NotNull(message: "notification.read.not_null")]
     public bool $read = false;
 
+
+    #[Groups(["read"])]
+    #[ORM\Column(type: 'string', length: 255, nullable: false)]
+    public string $url;
+
+
+    #[Groups(["read"])]
+    public string|null $title;
+
+    #[Groups(["read"])]
+    public string|null $content;
 
     public function __construct(array $data = [])
     {
@@ -57,5 +54,19 @@ class Notification extends Entity implements \Stringable
     {
         return $this->type->value;
     }
+
+    public function setType(string|NotificationType $type) : self
+    {
+
+        if(!($type instanceof NotificationType)) {
+            $type = NotificationType::from($type);
+        }
+
+        $this->type = $type;
+
+        return $this;
+    }
+
+
 
 }

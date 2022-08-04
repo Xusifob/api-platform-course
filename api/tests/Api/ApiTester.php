@@ -99,11 +99,11 @@ abstract class ApiTester extends ApiTestCase
     }
 
 
-    protected function get(IEntity|string $url, array $query = [],array $options = []): ?array
+    protected function get(IEntity|string $url, array $query = [], array $options = []): ?array
     {
         $url = $this->getUrl($url);
 
-        return $this->doRequest("GET", $url, $query,$options);
+        return $this->doRequest("GET", $url, $query, $options);
     }
 
 
@@ -122,7 +122,7 @@ abstract class ApiTester extends ApiTestCase
         throw new Exception("No url found for entity $url");
     }
 
-    private function doRequest(string $method, string $url, array $data = [],array $options = []): ?array
+    private function doRequest(string $method, string $url, array $data = [], array $options = []): ?array
     {
         $params = [
             "headers" => $this->getHeaders($options['headers'] ?? [])
@@ -304,7 +304,6 @@ abstract class ApiTester extends ApiTestCase
     #[ArrayShape(['Content-Type' => "string", "Accept" => "string"])]
     private function getHeaders(array $headers = []): array
     {
-
         if ($this->token) {
             $headers['Authorization'] = "Bearer $this->token";
         }
@@ -524,7 +523,7 @@ abstract class ApiTester extends ApiTestCase
     {
         return match ($username) {
             "admin" => "admin@api-platform-course.com",
-            "customer" => "mayert.olaf@api-platform-course.com",
+            "customer" => "customer1@api-platform-course.com",
             default => $username
         };
     }

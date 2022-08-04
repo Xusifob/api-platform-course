@@ -28,6 +28,43 @@ trait StatusTrait
         $this->status = EntityStatus::ACTIVE;
     }
 
+    public function isActive(): bool
+    {
+        return $this->isStatus(EntityStatus::ACTIVE);
+    }
+
+    public function isArchived(): bool
+    {
+        return $this->isStatus(EntityStatus::ARCHIVED);
+    }
+
+    public function isDeleted(): bool
+    {
+        return $this->isStatus(EntityStatus::DELETED);
+    }
+
+
+    protected function isStatus(EntityStatus $status): bool
+    {
+        return $this->status === $status;
+    }
+
+
+    public function setStatus(EntityStatus|int $status): self
+    {
+        if (is_int($status)) {
+            $status = EntityStatus::from($status);
+        }
+
+        $this->status = $status;
+
+        return $this;
+    }
+
+    public function getStatus(): EntityStatus
+    {
+        return $this->status;
+    }
 
     public function __toString(): string
     {

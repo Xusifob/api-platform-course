@@ -6,10 +6,17 @@ App\Entity\User:
         email: "admin@api-platform-course.com"
         role: 'ROLE_ADMIN'
         
-    client_{1..5}:
+    customer_1:
         givenName: <firstName()>
         familyName: <lastName()>
         plainPassword: "myAwesomePassword" 
-        email: "<username()>\\@api-platform-course.com"
+        email: "customer1\\@api-platform-course.com"
+        role: 'ROLE_CUSTOMER'
+    
+    customer_2:
+        givenName: <firstName()>
+        familyName: <lastName()>
+        plainPassword: "myAwesomePassword" 
+        email: "customer2\\@api-platform-course.com"
         role: 'ROLE_CUSTOMER'
 

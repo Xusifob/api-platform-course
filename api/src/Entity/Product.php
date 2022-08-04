@@ -15,6 +15,7 @@ use ApiPlatform\Metadata\Put;
 use App\Entity\Trait\StatusTrait;
 use App\Filter\StatusEntityFilter;
 use App\Repository\ProductRepository;
+use App\State\Product\ProductProvider;
 use App\Validator\IsReference;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -28,13 +29,16 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[ORM\Entity(repositoryClass: ProductRepository::class)]
 #[ApiResource(
     operations: [
-        new GetCollection(),
-        new Get(),
-        new Post(),
-        new Post(),
-        new Put(),
-        new Delete()
+        new GetCollection(security: "is_granted('PUBLIC_ACCESS')"),
+        new Post(securityPostDenormalize: "is_granted('CREATE',object)"),
+        new Put(security: "is_granted('UPDATE',object)"),
+        new Delete(security: "is_granted('DELETE',object)")
     ])]
+#[ApiResource(
+    uriTemplate: '/products/{id}',
+    operations: [new Get(security: "is_granted('VIEW',object)")],
+    provider: ProductProvider::class
+)]
 #[ORM\Table(name: "product")]
 #[UniqueEntity(fields: "reference")]
 #[ApiFilter(StatusEntityFilter::class, properties: ['archived'])]
