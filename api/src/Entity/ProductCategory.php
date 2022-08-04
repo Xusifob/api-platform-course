@@ -43,7 +43,7 @@ class ProductCategory extends Entity implements IStatusEntity, INamedEntity
     use StatusTrait;
 
     #[Groups(["product", "product_category"])]
-    #[ORM\Column(type: 'string', nullable: false, length: 255)]
+    #[ORM\Column(type: 'string', length: 255, nullable: false)]
     #[ApiProperty(iris: "https://schema.org/name")]
     public ?string $name = null;
 

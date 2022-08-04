@@ -3,7 +3,7 @@
 namespace App\Entity\Trait;
 
 use ApiPlatform\Metadata\ApiProperty;
-use App\Entity\Enum\EntityStatus;
+use App\Security\IEntityVoter;
 use Doctrine\ORM\Mapping as ORM;
 
 use Symfony\Bridge\Doctrine\IdGenerator\UuidGenerator;
@@ -27,6 +27,7 @@ trait EntityTrait
     #[ORM\CustomIdGenerator(class: UuidGenerator::class)]
     protected $id;
 
+    protected array $rights = [];
 
     /**
      * @return string|null
@@ -35,9 +36,6 @@ trait EntityTrait
     {
         return $this->id;
     }
-
-
-
 
 
     public function setEntityData(array $data = []): void
@@ -74,11 +72,34 @@ trait EntityTrait
     }
 
 
+    #[Groups(["read"])]
+    public function getRights(): array
+    {
+        return $this->rights;
+    }
+
+
+    public function setRight(string $key, bool $value): self
+    {
+        $this->rights[$key] = $value;
+
+        return $this;
+    }
+
+
+    public function getRightKeys(): array
+    {
+        return [
+            IEntityVoter::UPDATE,
+            IEntityVoter::DELETE,
+        ];
+    }
+
+
     public function __toString(): string
     {
         return (string)$this->getId();
     }
-
 
 
 }

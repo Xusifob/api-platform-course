@@ -77,12 +77,14 @@ class Product extends Entity implements IStatusEntity, INamedEntity
     #[ApiFilter(SearchFilter::class, properties: ['categories.name' => 'exact'])]
     private Collection $categories;
 
+
     #[Groups(["product:write", "read"])]
     #[ORM\Column(type: 'smallint', nullable: false)]
     #[ApiProperty(iris: "https://schema.org/price")]
     #[Assert\NotNull(message: "product.price.not_null")]
     #[Assert\Range(minMessage: "product.price.min", min: 0)]
     public ?int $price = null;
+
 
     #[Groups(["product"])]
     #[ORM\Column(type: 'smallint', nullable: true)]

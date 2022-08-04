@@ -84,8 +84,17 @@ class ProductsTest extends ApiTester
     {
         $product = $this->getProduct();
 
-        $this->get($product);
+        $data = $this->get($product);
         $this->assertResponseIsSuccessful();
+
+        $this->assertArrayHasKeys(['name', 'description', 'reference', 'categories', 'price', 'rights'], $data);
+
+        $this->assertEquals($product->name, $data['name']);
+        $this->assertEquals($product->description, $data['description']);
+        $this->assertEquals($product->reference, $data['reference']);
+        $this->assertEquals($product->price, $data['price']);
+        $this->assertNotEmpty($data['categories']);
+        $this->assertArrayHasKeys(['update', 'delete'], $data['rights']);
     }
 
 

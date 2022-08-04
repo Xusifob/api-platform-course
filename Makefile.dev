@@ -1,6 +1,3 @@
-make-entity:
-	make run-command 'make:entity'
-
 composer-require: ## [Development] Install a new composer package
 	docker-compose run --rm php composer require ${package}
 
@@ -27,13 +24,16 @@ update-schema: ## [Development] Updates the SQL schema
 	make run-command='doctrine:schema:update --dump-sql --force'
 
 database-create: ## [Development] Updates the SQL schema
-	make run-command='bin/console doctrine:database:create'
+	make run-command='doctrine:database:create'
 
 load-fixtures: ## [Development] Loads fixtures into the database
-	make run-command='bin/console hautelook:fixtures:load --no-interaction'
+	make run-command='hautelook:fixtures:load --no-interaction'
 
 clear-cache: ## [Development] Clears cache
 	make run-command command='cache:clear'
 
 run-command: ## [Development] Run a command inside docker
 	docker-compose run --rm php php bin/console ${command}
+
+make-entity:
+	make run-command 'make:entity'

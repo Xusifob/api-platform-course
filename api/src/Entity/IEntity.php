@@ -11,12 +11,19 @@ use Stringable;
  */
 interface IEntity extends Stringable
 {
-    public function __construct(array $data = []);
-
     /**
      * @return string|null
      */
     public function getId(): ?string;
+
+
+    public function getRights() : array;
+
+
+    public function setRight(string $key, bool $value) : self;
+
+
+    public function getRightKeys() : array;
 
 
 }

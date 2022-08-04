@@ -1,5 +1,5 @@
 parameters:
-    
+
 services:
     # default configuration for services in *this* file
     _defaults:
@@ -23,7 +23,7 @@ services:
         decorates: 'api_platform.serializer.context_builder'
         arguments:
             $decorated: '@App\Serializer\SerialisationGroupGenerator.inner'
-
+    
 
     ### Documentation
     App\OpenApi\AuthDecorator:

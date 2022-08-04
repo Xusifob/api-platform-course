@@ -4,18 +4,20 @@ namespace App\Serializer\Normalizer;
 
 use App\Entity\Notification;
 use Symfony\Component\Serializer\Exception\ExceptionInterface;
+use Symfony\Component\Serializer\Normalizer\CacheableSupportsMethodInterface;
 use Symfony\Component\Serializer\Normalizer\NormalizerAwareInterface;
 use Symfony\Component\Serializer\Normalizer\NormalizerAwareTrait;
 use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
-class NotificationNormalizer implements NormalizerInterface, NormalizerAwareInterface
+class NotificationNormalizer implements NormalizerInterface, NormalizerAwareInterface, CacheableSupportsMethodInterface
 {
     use NormalizerAwareTrait;
 
     private const ALREADY_CALLED = 'NOTIFICATION_NORMALIZER_ALREADY_CALLED';
 
-    public function __construct(private readonly TranslatorInterface $translator) {
+    public function __construct(private readonly TranslatorInterface $translator)
+    {
     }
 
     /**
@@ -31,8 +33,8 @@ class NotificationNormalizer implements NormalizerInterface, NormalizerAwareInte
 
         $type = strtolower($object->type->value);
 
-        $object->title = $this->translator->trans("$type.title", [], "notifications");
-        $object->content = $this->translator->trans("$type.content", [], "notifications");
+        $object->title = $this->translator->trans("type.$type.title", [], "notifications");
+        $object->content = $this->translator->trans("type.$type.content", [], "notifications");
 
         return $this->normalizer->normalize($object, $format, $context);
     }
@@ -46,5 +48,12 @@ class NotificationNormalizer implements NormalizerInterface, NormalizerAwareInte
 
         return $data instanceof Notification;
     }
+
+
+    public function hasCacheableSupportsMethod(): bool
+    {
+        return false;
+    }
+
 
 }
