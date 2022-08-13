@@ -15,3 +15,6 @@ doctrine:
                 dir: '%kernel.project_dir%/src/Entity'
                 prefix: 'App\Entity'
                 alias: App
+        dql:
+            string_functions:
+                JSON_GET_TEXT: Scienta\DoctrineJsonFunctions\Query\AST\Functions\Postgresql\JsonGetText

@@ -50,11 +50,11 @@ class User extends Entity implements IEntity, IStatusEntity, UserInterface, Pass
     /**
      * @var string[]
      */
-    #[ORM\Column(name: "roles",)]
+    #[ORM\Column(name: "roles", type: 'json', options: ['jsonb' => true])]
     private array $roles = [];
 
     /**
-     * @var string The hashed password
+     * @var string|null The hashed password
      */
     #[ORM\Column(name: "password", nullable: false)]
     private ?string $password = null;

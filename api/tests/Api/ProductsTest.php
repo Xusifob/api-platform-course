@@ -3,6 +3,8 @@
 namespace App\Tests\Api;
 
 use App\Entity\Enum\EntityStatus;
+use App\Entity\Enum\NotificationType;
+use App\Entity\Notification;
 use App\Entity\Product;
 use App\Entity\ProductCategory;
 use JetBrains\PhpStorm\NoReturn;
@@ -179,6 +181,38 @@ class ProductsTest extends ApiTester
 
         unset($postData['categories']);
         $this->assertResponseHasPostData($data, $postData);
+    }
+
+
+    #[NoReturn]
+    public function testCreateSaleProductSendsNotificationToCustomer(): void
+    {
+
+        $category = $this->getEntity(ProductCategory::class);
+
+        $postData = $this->formatData([
+            "name" => "My awesome product",
+            "description" => "My description",
+            "price" => 333,
+            'discountPercent' => 20,
+            "reference" => Product::generateReference()
+        ], [
+            "categories" => [
+                $this->getEntityUri($category)
+            ]
+        ]);
+
+        $this->login("admin");
+        $this->post("/products", $postData);
+        $this->assertResponseIsSuccessful();
+
+        $notification = $this->em->getRepository(Notification::class)->findOneBy([
+            'owner' => $this->getCustomer(),
+            'type' => NotificationType::NEW_PRODUCT_SALE
+        ]);
+
+        $this->assertTrue($notification instanceof Notification);
+
     }
 
 

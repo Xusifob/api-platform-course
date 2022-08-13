@@ -2,6 +2,7 @@
 
 namespace App\Repository;
 
+use App\Entity\Enum\UserRole;
 use App\Entity\IEntity;
 use App\Entity\User;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
@@ -35,6 +36,19 @@ class UserRepository extends AbstractRepository implements PasswordUpgraderInter
         $user->setPassword($newHashedPassword);
 
         $this->add($user, true);
+    }
+
+
+    /**
+     * @return User[]
+     */
+    public function findByRole(UserRole $role): array
+    {
+        return $this->createQueryBuilder('u')
+            ->where("JSON_GET_TEXT(u.roles,0) = :role")
+            ->setParameter('role', $role)
+            ->getQuery()
+            ->getResult();
     }
 
 

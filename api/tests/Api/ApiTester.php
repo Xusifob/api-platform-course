@@ -8,6 +8,7 @@ use ApiPlatform\Metadata\Resource\Factory\ResourceMetadataCollectionFactoryInter
 use ApiPlatform\Symfony\Bundle\Test\ApiTestCase;
 use ApiPlatform\Symfony\Bundle\Test\Client;
 use App\Entity\IEntity;
+use App\Entity\User;
 use App\Repository\IRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
@@ -516,6 +517,12 @@ abstract class ApiTester extends ApiTestCase
         foreach ($values as $test) {
             $this->assertContains($test, $data);
         }
+    }
+
+
+    protected function getCustomer(): User
+    {
+        return $this->getRepository(User::class)->findOneBy(['email' => $this->resolveUsername("customer")]);
     }
 
 

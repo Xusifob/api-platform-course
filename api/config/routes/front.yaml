@@ -1,0 +1,2 @@
+front_products_item:
+    path: /webapp/products/{reference}

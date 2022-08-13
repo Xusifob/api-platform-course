@@ -26,11 +26,19 @@ api_platform:
             JWT:
                 name: Authorization
                 type: header
-
+    collection:
+        pagination:
+            page_parameter_name: page
+            items_per_page_parameter_name: per_page
+    
     # Mercure integration, remove if unwanted
     mercure: ~
     # Good cache defaults for REST APIs
     defaults:
+        pagination_items_per_page: 30
+        pagination_client_items_per_page: true
+        pagination_maximum_items_per_page: 100
+            
         stateless: true
         normalization_context: 
             skip_null_values: false

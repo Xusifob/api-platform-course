@@ -14,9 +14,9 @@ use Symfony\Component\Mime\Address;
 final class UserProcessor implements ProcessorInterface
 {
     public function __construct(
-        private ProcessorInterface $decorated,
-        private MailerInterface $mailer,
-        private LoggerInterface $logger
+        private readonly ProcessorInterface $decorated,
+        private readonly MailerInterface $mailer,
+        private readonly LoggerInterface $logger
     ) {
     }
 

@@ -42,3 +42,7 @@ services:
     App\State\User\UserProcessor:
         bind:
             $decorated: '@ApiPlatform\Doctrine\Common\State\PersistProcessor'
+    
+    App\State\Product\ProductProcessor:
+        bind:
+            $decorated: '@ApiPlatform\Doctrine\Common\State\PersistProcessor'

@@ -15,6 +15,7 @@ use ApiPlatform\Metadata\Put;
 use App\Entity\Trait\StatusTrait;
 use App\Filter\StatusEntityFilter;
 use App\Repository\ProductRepository;
+use App\State\Product\ProductProcessor;
 use App\State\Product\ProductProvider;
 use App\Validator\IsReference;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -30,8 +31,8 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[ApiResource(
     operations: [
         new GetCollection(security: "is_granted('PUBLIC_ACCESS')"),
-        new Post(securityPostDenormalize: "is_granted('CREATE',object)"),
-        new Put(security: "is_granted('UPDATE',object)"),
+        new Post(securityPostDenormalize: "is_granted('CREATE',object)", processor: ProductProcessor::class),
+        new Put(security: "is_granted('UPDATE',object)", processor: ProductProcessor::class),
         new Delete(security: "is_granted('DELETE',object)")
     ])]
 #[ApiResource(
