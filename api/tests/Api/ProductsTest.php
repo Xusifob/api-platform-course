@@ -4,11 +4,9 @@ namespace App\Tests\Api;
 
 use App\Entity\Enum\EntityStatus;
 use App\Entity\Enum\NotificationType;
-use App\Entity\MediaObject;
 use App\Entity\Notification;
 use App\Entity\Product;
 use App\Entity\ProductCategory;
-use App\Entity\User;
 use JetBrains\PhpStorm\NoReturn;
 
 class ProductsTest extends ApiTester
@@ -351,24 +349,5 @@ class ProductsTest extends ApiTester
         return $this->getRepository($this->getDefaultClass())->findOneBy(["status" => EntityStatus::ACTIVE]);
     }
 
-    private function createMediaObject(
-        User $owner,
-        string $filePath = "/path/to/file.png",
-        string $mimeType = "image/png"
-    ): MediaObject {
-        $object = new MediaObject();
-        $object->filePath = $filePath;
-        $object->mimeType = $mimeType;
-        $object->owner = $owner;
-        $object->uploadTime = new \DateTime();
-        $object->bucket = "bucket";
-        $object->originalName = basename($filePath);
-        $object->altText = "My alt text";
-
-        $this->em->persist($object);
-        $this->em->flush();
-
-        return $object;
-    }
 
 }

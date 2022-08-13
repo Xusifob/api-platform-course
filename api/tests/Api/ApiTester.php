@@ -8,6 +8,7 @@ use ApiPlatform\Metadata\Resource\Factory\ResourceMetadataCollectionFactoryInter
 use ApiPlatform\Symfony\Bundle\Test\ApiTestCase;
 use ApiPlatform\Symfony\Bundle\Test\Client;
 use App\Entity\IEntity;
+use App\Entity\MediaObject;
 use App\Entity\User;
 use App\Repository\IRepository;
 use App\Tests\TesterTrait;
@@ -80,9 +81,8 @@ abstract class ApiTester extends ApiTestCase
     }
 
 
-    protected function uploadFile(string $url, string $file,array $params = []) : array
+    protected function uploadFile(string $url, string $file, array $params = []): array
     {
-
         $file = new UploadedFile($file, basename($file));
 
         $response = $this->apiClient->request('POST', $url, [
@@ -98,7 +98,6 @@ abstract class ApiTester extends ApiTestCase
         ]);
 
         return json_decode($response->getContent(false), true);
-
     }
 
 
@@ -470,33 +469,42 @@ abstract class ApiTester extends ApiTestCase
         };
     }
 
+    protected function getJsonAttributes(array $data): array
+    {
+        return $this->format === self::FORMAT_JSONAPI ? $this->getJsonApiKeys($data['data']) : $data;
+    }
+
 
     private function getJsonApiCollection(array $collection): array
     {
         $data = [];
 
         foreach ($collection['data'] as $datum) {
-            $data[] = array_merge([
-                "id" => $datum['id'],
-                "type" => $datum['type']
-            ],
-                $datum['attributes'] ?? [],
-                $datum['relationships'] ?? [],
-            );
+            $data[] = $this->getJsonApiKeys($datum);
         }
 
         return $data;
     }
 
 
-    /**
-     * @param string $username
-     * @param string $password
-     * @return array
-     * @throws Exception
-     */
-    protected function login(string $username, string $password = "myAwesomePassword"): array
+    protected function getJsonApiKeys(array $datum): array
     {
+        return array_merge([
+            "id" => $datum['id'],
+            "type" => $datum['type']
+        ],
+            $datum['attributes'] ?? [],
+            $datum['relationships'] ?? [],
+        );
+    }
+
+
+    protected function login(User|string $username, string $password = "myAwesomePassword"): array
+    {
+        if ($username instanceof User) {
+            $username = $username->email;
+        }
+
         $username = $this->resolveUsername($username);
 
         $data = $this->post("login", [
@@ -536,6 +544,27 @@ abstract class ApiTester extends ApiTestCase
         foreach ($values as $test) {
             $this->assertContains($test, $data);
         }
+    }
+
+
+    protected function createMediaObject(
+        User $owner,
+        string $filePath = "/path/to/file.png",
+        string $mimeType = "image/png"
+    ): MediaObject {
+        $object = new MediaObject();
+        $object->filePath = $filePath;
+        $object->mimeType = $mimeType;
+        $object->owner = $owner;
+        $object->uploadTime = new \DateTime();
+        $object->bucket = "bucket";
+        $object->originalName = basename($filePath);
+        $object->altText = "My alt text";
+
+        $this->em->persist($object);
+        $this->em->flush();
+
+        return $object;
     }
 
 

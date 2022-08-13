@@ -33,7 +33,61 @@ class MediaObjectTest extends ApiTester
         $this->assertEquals("image/png", $data['mimeType']);
     }
 
-    function getDefaultClass(): string
+
+    /**
+     *
+     * @dataProvider getFormats
+     *
+     */
+    public function testGetMediaObjects(string $format): void
+    {
+        $customer = $this->getCustomer();
+        $object = $this->createMediaObject($customer);
+
+        $this->login($customer);
+
+        $this->format = $format;
+
+        $data = $this->get("media_objects");
+        $this->assertResponseIsSuccessful();
+
+        $this->assertGetCollectionCount(1, $data);
+
+        $this->assertCollectionKeyContains($data, "altText", $object->altText);
+        $this->assertCollectionKeyContains($data, "mimeType", $object->mimeType);
+        $this->assertCollectionKeyContains($data, "originalName", $object->originalName);
+
+    }
+
+
+    /**
+     *
+     * @dataProvider getFormats
+     *
+     */
+    public function testGetMediaObject(string $format): void
+    {
+        $customer = $this->getCustomer();
+        $object = $this->createMediaObject($customer);
+
+        $this->login($customer);
+
+        $this->format = $format;
+
+        $data = $this->get($object);
+        $this->assertResponseIsSuccessful();
+
+        $data = $this->getJsonAttributes($data);
+
+        $this->assertEquals($object->altText,$data['altText']);
+        $this->assertEquals($object->mimeType,$data['mimeType']);
+        $this->assertEquals($object->originalName,$data['originalName']);
+        $this->assertStringContainsString("http",$data['previewUrl']);
+
+    }
+
+
+    public function getDefaultClass(): string
     {
         return MediaObject::class;
     }
