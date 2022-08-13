@@ -22,9 +22,7 @@ final class ProductProcessor implements ProcessorInterface
     public function __construct(
         private readonly EntityManagerInterface $em,
         private readonly ProcessorInterface $decorated,
-        private readonly RouterInterface $router,
-        private readonly MailerInterface $mailer,
-        private readonly LoggerInterface $logger
+        private readonly RouterInterface $router
     ) {
     }
 

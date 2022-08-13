@@ -1,0 +1,15 @@
+vich_uploader:
+    db_driver: orm
+    storage: flysystem
+    metadata:
+        auto_detection: true
+        cache: file
+        type: attribute
+    mappings:
+        media_object:
+            upload_destination: oneup_flysystem.media_object_fs_filesystem
+            # Will rename uploaded files using a uniqueid as a prefix.
+            namer: Vich\UploaderBundle\Naming\UniqidNamer
+            # specify a directory namer service for this entity, null default
+            delete_on_remove: true  # determine whether to delete file upon removal of entity
+            delete_on_update: true  # determine wheter to delete the file upon update of entity

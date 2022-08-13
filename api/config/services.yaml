@@ -1,4 +1,6 @@
 parameters:
+    env(AWS_S3_READ_ENDPOINT): null
+    env(AWS_S3_WRITE_ENDPOINT): null
 
 services:
     # default configuration for services in *this* file
@@ -23,12 +25,34 @@ services:
         decorates: 'api_platform.serializer.context_builder'
         arguments:
             $decorated: '@App\Serializer\SerialisationGroupGenerator.inner'
-    
 
+
+    ### Services
+    App\Service\MediaUploader:
+        class: App\Service\MediaUploader
+        arguments:
+            $s3ReadClient: '@s3.read.client'
+            $bucket: '%env(AWS_S3_BUCKET)%'
+    
+    s3.read.client:
+        class: Aws\S3\S3Client
+        arguments:
+            -   version: '2006-03-01'
+                endpoint: '%env(AWS_S3_READ_ENDPOINT)%'
+                region: '%env(AWS_REGION)%'
+                use_path_style_endpoint: true
+    
+    s3.write.client:
+        class: Aws\S3\S3Client
+        arguments:
+            -   version: '2006-03-01'
+                endpoint: '%env(AWS_S3_WRITE_ENDPOINT)%'
+                region: '%env(AWS_REGION)%'
+                use_path_style_endpoint: true    
+    
     ### Documentation
     App\OpenApi\AuthDecorator:
         decorates: 'api_platform.openapi.factory'
-
 
 
     ### Entity listeners

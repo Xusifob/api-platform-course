@@ -1,0 +1,12 @@
+# Read the documentation: https://github.com/1up-lab/OneupFlysystemBundle
+oneup_flysystem:
+    adapters:
+        media_object_adapter:
+            awss3v3:
+                client: 's3.write.client'
+                bucket: '%env(AWS_S3_BUCKET)%'
+
+    filesystems:
+        media_object_fs:
+            adapter: media_object_adapter
+            mount: media_object_fs

@@ -4,9 +4,11 @@ namespace App\Tests\Api;
 
 use App\Entity\Enum\EntityStatus;
 use App\Entity\Enum\NotificationType;
+use App\Entity\MediaObject;
 use App\Entity\Notification;
 use App\Entity\Product;
 use App\Entity\ProductCategory;
+use App\Entity\User;
 use JetBrains\PhpStorm\NoReturn;
 
 class ProductsTest extends ApiTester
@@ -69,9 +71,10 @@ class ProductsTest extends ApiTester
     #[NoReturn]
     public function testFilterProductsByStatus(string $format): void
     {
+        $this->login("customer");
+
         $this->format = $format;
 
-        $this->login("customer");
         $data = $this->get("/products", [
             "archived" => true
         ]);
@@ -133,10 +136,12 @@ class ProductsTest extends ApiTester
     #[NoReturn]
     public function testCreateProductInvalid(string $format): void
     {
-        $this->format = $format;
-
         $this->login("admin");
+
+        $this->format = $format;
         $data = $this->post("/products");
+
+        $this->assertResponseIsUnProcessable();
 
         $this->assertHasViolations(
             $data,
@@ -153,12 +158,47 @@ class ProductsTest extends ApiTester
 
     /**
      *
+     **/
+    #[NoReturn]
+    public function testCreateProductWithInvalidPhoto(): void
+    {
+        $this->login("admin");
+
+        $category = $this->getEntity(ProductCategory::class);
+        $photo = $this->createMediaObject($this->getAdmin(),"path/to/document.pdf","application/pdf");
+
+        $postData = $this->formatData([
+            "name" => "My awesome product",
+            "description" => "My description",
+            "mainPhoto" => $this->getEntityUri($photo),
+            "price" => 333,
+            "reference" => Product::generateReference()
+        ], [
+            "categories" => [
+                $this->getEntityUri($category)
+            ]
+        ]);
+
+        $data = $this->post("/products", $postData);
+
+        self::assertResponseIsUnProcessable();
+
+        $this->assertHasViolations($data,["mainPhoto"],["product.main_photo.type_invalid"]);
+
+
+    }
+
+
+    /**
+     *
      * @dataProvider getFormats
      *
      **/
     #[NoReturn]
     public function testCreateProduct(string $format): void
     {
+        $this->login("admin");
+
         $this->format = $format;
 
         $category = $this->getEntity(ProductCategory::class);
@@ -174,7 +214,6 @@ class ProductsTest extends ApiTester
             ]
         ]);
 
-        $this->login("admin");
         $data = $this->post("/products", $postData);
 
         $this->assertResponseIsSuccessful();
@@ -184,10 +223,40 @@ class ProductsTest extends ApiTester
     }
 
 
+    /**
+     *
+     **/
+    #[NoReturn]
+    public function testCreateProductWithPhoto(): void
+    {
+        $this->login("admin");
+
+        $category = $this->getEntity(ProductCategory::class);
+        $photo = $this->createMediaObject($this->getAdmin());
+
+        $postData = $this->formatData([
+            "name" => "My awesome product",
+            "description" => "My description",
+            "mainPhoto" => $this->getEntityUri($photo),
+            "price" => 333,
+            "reference" => Product::generateReference()
+        ], [
+            "categories" => [
+                $this->getEntityUri($category)
+            ]
+        ]);
+
+        $data = $this->post("/products", $postData);
+
+        $this->assertResponseIsSuccessful();
+
+        $this->assertArrayHasKeys(['altText', "previewUrl", "mimeType", "@id"], $data['mainPhoto']);
+    }
+
+
     #[NoReturn]
     public function testCreateSaleProductSendsNotificationToCustomer(): void
     {
-
         $category = $this->getEntity(ProductCategory::class);
 
         $postData = $this->formatData([
@@ -212,7 +281,6 @@ class ProductsTest extends ApiTester
         ]);
 
         $this->assertTrue($notification instanceof Notification);
-
     }
 
 
@@ -237,13 +305,14 @@ class ProductsTest extends ApiTester
     {
         $product = $this->getProduct();
 
+        $this->login("admin");
+
         $this->format = $format;
 
         $postData = $this->formatData([
             "name" => "My new name",
         ]);
 
-        $this->login("admin");
         $data = $this->put($product, $postData);
 
         $this->assertResponseIsSuccessful();
@@ -280,6 +349,26 @@ class ProductsTest extends ApiTester
     private function getProduct(): Product
     {
         return $this->getRepository($this->getDefaultClass())->findOneBy(["status" => EntityStatus::ACTIVE]);
+    }
+
+    private function createMediaObject(
+        User $owner,
+        string $filePath = "/path/to/file.png",
+        string $mimeType = "image/png"
+    ): MediaObject {
+        $object = new MediaObject();
+        $object->filePath = $filePath;
+        $object->mimeType = $mimeType;
+        $object->owner = $owner;
+        $object->uploadTime = new \DateTime();
+        $object->bucket = "bucket";
+        $object->originalName = basename($filePath);
+        $object->altText = "My alt text";
+
+        $this->em->persist($object);
+        $this->em->flush();
+
+        return $object;
     }
 
 }

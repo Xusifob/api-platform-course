@@ -17,6 +17,8 @@ use App\Filter\StatusEntityFilter;
 use App\Repository\ProductRepository;
 use App\State\Product\ProductProcessor;
 use App\State\Product\ProductProvider;
+use App\Validator\Enum\MediaType;
+use App\Validator\IsMedia;
 use App\Validator\IsReference;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -92,6 +94,12 @@ class Product extends Entity implements IStatusEntity, INamedEntity
     #[ApiProperty(iris: "https://schema.org/Number")]
     #[Assert\Range(notInRangeMessage: "product.price.min", min: 0, max: 100)]
     public ?int $discountPercent = null;
+
+
+    #[Groups(["product"])]
+    #[ORM\ManyToOne(targetEntity: MediaObject::class, cascade: ["remove"])]
+    #[IsMedia(type: MediaType::IMAGE, message: "product.main_photo.type_invalid")]
+    public ?MediaObject $mainPhoto;
 
 
     public function __construct(array $data = [])

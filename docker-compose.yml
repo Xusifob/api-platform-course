@@ -38,6 +38,9 @@ services:
       - php_socket:/var/run/php
       - caddy_data:/data
       - caddy_config:/config
+      - ./docker/php/aws_credentials:/home/www-data/.aws/credentials
+      - ./docker/php/aws_credentials:/root/.aws/credentials
+
     ports:
       # HTTP
       - target: 80
@@ -77,6 +80,26 @@ services:
     depends_on:
       - database
 
+
+  aws:
+    image: localstack/localstack
+    ports:
+      - "444:443"
+      - "4510-4559:4510-4559"
+      - "4566:4566"
+    environment:
+      - SERVICES=${AWS_SERVICES:-s3}
+      - AWS_S3_BUCKET=$AWS_S3_BUCKET
+      - DEBUG=1
+      - START_WEB=1
+      - HOST_TMP_FOLDER=${TMPDIR:-/tmp/}localstack
+      - DATA_DIR=${TMPDIR:-/tmp/}localstack/data
+      - DOCKER_HOST=unix:///var/run/docker.sock
+      - HOSTNAME_EXTERNAL=aws
+    volumes:
+      - ./shared/docker/aws:/docker-entrypoint-initaws.d
+      - "${TMPDIR:-/tmp}/localstack:/tmp/localstack"
+      - "/var/run/docker.sock:/var/run/docker.sock"
 
 # Mercure is installed as a Caddy module, prevent the Flex recipe from installing another service
 ###> symfony/mercure-bundle ###

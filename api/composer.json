@@ -6,6 +6,7 @@
         "ext-ctype": "*",
         "ext-iconv": "*",
         "api-platform/core": "^3.0@rc",
+        "aws/aws-sdk-php": "^3.233",
         "composer/package-versions-deprecated": "^1.11",
         "doctrine/annotations": "^1.0",
         "doctrine/doctrine-bundle": "^2.1",
@@ -13,8 +14,10 @@
         "doctrine/orm": "^2.7",
         "gesdinet/jwt-refresh-token-bundle": "^1.1",
         "guzzlehttp/guzzle": "^7.0",
+        "league/flysystem-aws-s3-v3": "^3.2",
         "lexik/jwt-authentication-bundle": "^2.16",
         "nelmio/cors-bundle": "^2.1",
+        "oneup/flysystem-bundle": "^4.4",
         "phpdocumentor/reflection-docblock": "^5.2",
         "phpspec/prophecy-phpunit": "^2.0",
         "scienta/doctrine-json-functions": "^5.1",
@@ -37,7 +40,8 @@
         "symfony/twig-bundle": "6.1.*",
         "symfony/uid": "^6.1",
         "symfony/validator": "6.1.*",
-        "symfony/yaml": "6.1.*"
+        "symfony/yaml": "6.1.*",
+        "vich/uploader-bundle": "^1.21"
     },
     "require-dev": {
         "api-platform/schema-generator": "^4.0",

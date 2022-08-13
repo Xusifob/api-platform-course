@@ -15,6 +15,7 @@ use Exception;
 use Hautelook\AliceBundle\PhpUnit\ReloadDatabaseTrait;
 use JetBrains\PhpStorm\ArrayShape;
 use Symfony\Component\HttpClient\Exception\ClientException;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Contracts\Translation\TranslatorInterface;
@@ -77,6 +78,28 @@ abstract class ApiTester extends ApiTestCase
         }
 
         return $formats;
+    }
+
+
+    protected function uploadFile(string $url, string $file,array $params = []) : array
+    {
+
+        $file = new UploadedFile($file, basename($file));
+
+        $response = $this->apiClient->request('POST', $url, [
+            'headers' => $this->getHeaders(['Content-Type' => 'multipart/form-data']),
+            'extra' => [
+                'parameters' => [
+                    'title' => $params,
+                ],
+                'files' => [
+                    'file' => $file,
+                ],
+            ]
+        ]);
+
+        return json_decode($response->getContent(false), true);
+
     }
 
 
@@ -174,6 +197,11 @@ abstract class ApiTester extends ApiTestCase
     public function assertResponseIsNotFound()
     {
         $this->assertResponseStatusCodeSame(Response::HTTP_NOT_FOUND);
+    }
+
+    public function assertResponseIsBadRequest()
+    {
+        $this->assertResponseStatusCodeSame(Response::HTTP_BAD_REQUEST);
     }
 
     public function assertResponseForbidden()
@@ -522,7 +550,18 @@ abstract class ApiTester extends ApiTestCase
 
     protected function getCustomer(): User
     {
-        return $this->getRepository(User::class)->findOneBy(['email' => $this->resolveUsername("customer")]);
+        return $this->getUser("customer");
+    }
+
+
+    protected function getAdmin(): User
+    {
+        return $this->getUser("admin");
+    }
+
+    protected function getUser(string $username): User
+    {
+        return $this->getRepository(User::class)->findOneBy(['email' => $this->resolveUsername($username)]);
     }
 
 
