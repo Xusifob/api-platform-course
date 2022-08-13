@@ -10,4 +10,8 @@ use Stringable;
 interface IOwnedEntity extends IEntity
 {
 
+
+    public function isOwnedBy(User $user): bool;
+
+
 }

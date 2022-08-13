@@ -26,9 +26,9 @@ class ProductCategoryVoterTest extends AbstractVoterTest
      */
     public function testView(string $username, string $method, int $access): void
     {
-        $address = $this->$method();
+        $category = $this->$method();
 
-        $this->assertVote($username, $address, IEntityVoter::VIEW, $access);
+        $this->assertVote($username, $category, IEntityVoter::VIEW, $access);
     }
 
 
@@ -77,9 +77,9 @@ class ProductCategoryVoterTest extends AbstractVoterTest
      */
     public function testCreate(string $username, string $method, int $access): void
     {
-        $address = $this->$method();
+        $category = $this->$method();
 
-        $this->assertVote($username, $address, IEntityVoter::CREATE, $access);
+        $this->assertVote($username, $category, IEntityVoter::CREATE, $access);
     }
 
 
@@ -105,9 +105,9 @@ class ProductCategoryVoterTest extends AbstractVoterTest
      */
     public function testUpdate(string $username, string $method, int $access): void
     {
-        $address = $this->$method();
+        $category = $this->$method();
 
-        $this->assertVote($username, $address, IEntityVoter::UPDATE, $access);
+        $this->assertVote($username, $category, IEntityVoter::UPDATE, $access);
     }
 
 
@@ -132,9 +132,9 @@ class ProductCategoryVoterTest extends AbstractVoterTest
      */
     public function testArchive(string $username, string $method, int $access): void
     {
-        $address = $this->$method();
+        $category = $this->$method();
 
-        $this->assertVote($username, $address, IEntityVoter::ARCHIVE, $access);
+        $this->assertVote($username, $category, IEntityVoter::ARCHIVE, $access);
     }
 
 
@@ -165,9 +165,9 @@ class ProductCategoryVoterTest extends AbstractVoterTest
      */
     public function testDisArchive(string $username, string $method, int $access): void
     {
-        $address = $this->$method();
+        $category = $this->$method();
 
-        $this->assertVote($username, $address, IEntityVoter::DISARCHIVE, $access);
+        $this->assertVote($username, $category, IEntityVoter::DISARCHIVE, $access);
     }
 
 
@@ -198,9 +198,9 @@ class ProductCategoryVoterTest extends AbstractVoterTest
      */
     public function testDelete(string $username, string $method, int $access): void
     {
-        $address = $this->$method();
+        $category = $this->$method();
 
-        $this->assertVote($username, $address, IEntityVoter::DELETE, $access);
+        $this->assertVote($username, $category, IEntityVoter::DELETE, $access);
     }
 
 

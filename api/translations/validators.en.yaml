@@ -12,3 +12,10 @@ product:
         not_null: Please choose a category
     main_photo:
         type_invalid: Please select a photo
+
+
+media_object:
+    mime_type:
+        invalid: This type of document is invalid, please upload another one.
+    size:
+        invalid: Your file is too heavy.

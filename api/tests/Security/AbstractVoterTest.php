@@ -3,6 +3,7 @@
 namespace App\Tests\Security;
 
 use App\Entity\User;
+use App\Tests\TesterTrait;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\Security\Core\Authentication\Token\UsernamePasswordToken;
 use Symfony\Component\Security\Core\Authorization\Voter\VoterInterface;
@@ -11,6 +12,8 @@ abstract class AbstractVoterTest extends KernelTestCase
 {
 
     protected VoterInterface $voter;
+
+    use TesterTrait;
 
 
     public function setUp(): void

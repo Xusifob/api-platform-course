@@ -21,10 +21,9 @@ use Vich\UploaderBundle\Mapping\Annotation as Vich;
 #[ApiResource(
     types: ['https://schema.org/MediaObject'],
     operations: [
+        new GetCollection(),
         new Get(
-            controller: NotFoundAction::class,
-            output: false,
-            read: false
+            security: "is_granted('VIEW',object)",
         ),
         new Post(
             uriTemplate: "upload",
@@ -55,6 +54,13 @@ use Vich\UploaderBundle\Mapping\Annotation as Vich;
 class MediaObject extends Entity implements IOwnedEntity
 {
 
+    public const MIME_TYPES = [
+        'image/png',
+        'image/jpeg',
+        'iamge/png',
+        'application/pdf'
+    ];
+
     use OwnedTrait;
 
     #[ApiProperty(types: ['https://schema.org/contentUrl'])]
@@ -82,6 +88,7 @@ class MediaObject extends Entity implements IOwnedEntity
 
     #[ORM\Column(nullable: true)]
     #[Groups(['media_object:read'])]
+    #[Assert\Range(maxMessage: "media_object.size.invalid", max: 8 * 1024 * 1024)]
     public ?int $size = null;
 
     #[ORM\Column(nullable: false)]
@@ -95,6 +102,7 @@ class MediaObject extends Entity implements IOwnedEntity
     #[ORM\Column(nullable: false)]
     #[Groups(['read'])]
     #[Assert\NotNull(message: "media_object.mime_type.not_null")]
+    #[Assert\Choice(choices: self::MIME_TYPES, message: "media_object.mime_type.invalid")]
     public ?string $mimeType = null;
 
     #[ORM\Column(type: "datetime", nullable: false)]
