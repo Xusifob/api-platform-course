@@ -1,8 +1,8 @@
 <?php
-// api/src/Entity/MediaObject.php
+
 namespace App\Entity;
 
-use ApiPlatform\Action\NotFoundAction;
+use DateTimeInterface;
 use ApiPlatform\Metadata\ApiProperty;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
@@ -10,9 +10,14 @@ use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Post;
 use App\Controller\CreateMediaObjectAction;
 use App\Entity\Trait\OwnedTrait;
+use App\State\MediaObject\MediaObjectProcessor;
+use App\Validator\Enum\MediaType;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\HttpFoundation\File\File;
 use Symfony\Component\Serializer\Annotation\Groups;
+use Symfony\Component\Serializer\Annotation\MaxDepth;
 use Symfony\Component\Validator\Constraints as Assert;
 use Vich\UploaderBundle\Mapping\Annotation as Vich;
 
@@ -47,14 +52,15 @@ use Vich\UploaderBundle\Mapping\Annotation as Vich;
             ],
             securityPostDenormalize: "is_granted('ROLE_USER')",
             validationContext: ['groups' => ['Default', 'media_object:post']],
-            deserialize: false
+            deserialize: false,
+            processor: MediaObjectProcessor::class
         )
     ],
 )]
 class MediaObject extends Entity implements IOwnedEntity
 {
 
-    public const MIME_TYPES = [
+    final public const MIME_TYPES = [
         'image/png',
         'image/jpeg',
         'iamge/png',
@@ -108,6 +114,80 @@ class MediaObject extends Entity implements IOwnedEntity
     #[ORM\Column(type: "datetime", nullable: false)]
     #[Groups(['media_object:read'])]
     #[Assert\NotNull(message: "media_object.upload_time.not_null")]
-    public ?\DateTimeInterface $uploadTime = null;
+    public ?DateTimeInterface $uploadTime = null;
+
+    #[ORM\Column(type: "boolean", nullable: false)]
+    public bool $isThumbnail = false;
+
+    #[Groups(["read"])]
+    #[ORM\Column(type: "string", length: 20, nullable: true)]
+    public null|string $thumbnailSize = null;
+
+    /**
+     * @var Collection<int,MediaObject>
+     */
+    #[Groups(["read"])]
+    #[MaxDepth(1)]
+    #[ORM\OneToMany(mappedBy: "mainObject", targetEntity: MediaObject::class, cascade: ["persist","remove"])]
+    #[ORM\JoinColumn(referencedColumnName: 'id', nullable: true, onDelete: "SET NULL")]
+    public Collection $thumbnails;
+
+    /**
+     * @var MediaObject|null
+     */
+    #[ORM\ManyToOne(targetEntity: MediaObject::class, inversedBy: "thumbnails")]
+    #[ORM\JoinColumn(referencedColumnName: 'id', nullable: true)]
+    public MediaObject|null $mainObject = null;
+
+    public function __construct(array $data = [])
+    {
+        $this->thumbnails = new ArrayCollection();
+        parent::__construct($data);
+    }
+
+    public function canHavePreview(): bool
+    {
+        if ($this->isThumbnail) {
+            return false;
+        }
+
+        return $this->getMediaType()->hasPreview();
+    }
+
+
+    public function getMediaType(): MediaType
+    {
+        return MediaType::fromMimeType($this->mimeType);
+    }
+
+    public function addThumbnail(MediaObject $object): self
+    {
+        if (!$this->thumbnails->contains($object)) {
+            $object->isThumbnail = true;
+            $this->thumbnails->add($object);
+            $object->mainObject = $this;
+        }
+
+        return $this;
+    }
+
+    public function removeThumbnail(MediaObject $object): self
+    {
+        $this->thumbnails->removeElement($object);
+
+        return $this;
+    }
+
+    public function getThumbnailsSizes(): array
+    {
+        return ["50x50", "200x*"];
+    }
+
+
+    public function __toString(): string
+    {
+        return $this->originalName;
+    }
+
 
 }

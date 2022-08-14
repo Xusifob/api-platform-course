@@ -16,11 +16,8 @@ class IsMedia extends Constraint
     public string $message = 'The value "{{ value }}" is not valid.';
 
 
-    public MediaType $type;
-
-
     public function __construct(
-        MediaType $type,
+        public MediaType $type,
         string $message = null,
         mixed $options = null,
         array $groups = null,
@@ -29,8 +26,6 @@ class IsMedia extends Constraint
         if ($message) {
             $this->message = $message;
         }
-
-        $this->type = $type;
 
         parent::__construct($options, $groups, $payload);
     }

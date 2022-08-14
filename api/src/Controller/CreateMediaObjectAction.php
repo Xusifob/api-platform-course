@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Entity\MediaObject;
 use App\Entity\User;
 use App\Service\MediaUploader;
+use App\Service\ThumbnailGenerator;
 use DateTimeImmutable;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
@@ -17,7 +18,7 @@ use Symfony\Component\Security\Core\Security;
 final class CreateMediaObjectAction extends AbstractController
 {
 
-    public function __construct(private readonly MediaUploader $uploader,private readonly Security $security)
+    public function __construct(private readonly ThumbnailGenerator $thumbnailGenerator,private readonly MediaUploader $uploader,private readonly Security $security)
     {
 
     }

@@ -51,6 +51,7 @@ class StatusEntityFilter extends AbstractFilter
 
     public function getDescription(string $resourceClass): array
     {
+        $description = [];
         if (!$this->properties) {
             return [];
         }

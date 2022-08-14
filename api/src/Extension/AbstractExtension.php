@@ -2,12 +2,10 @@
 
 namespace App\Extension;
 
-use ApiPlatform\Doctrine\Orm\Extension\QueryCollectionExtensionInterface;
-use ApiPlatform\Doctrine\Orm\Extension\QueryItemExtensionInterface;
 use ReflectionClass;
 use ReflectionException;
 
-abstract class AbstractExtension implements QueryCollectionExtensionInterface, QueryItemExtensionInterface
+abstract class AbstractExtension
 {
 
     public static function implements(string $resourceClass, string $interface): bool
@@ -16,7 +14,7 @@ abstract class AbstractExtension implements QueryCollectionExtensionInterface, Q
             $class = new ReflectionClass($resourceClass);
 
             return $class->implementsInterface($interface);
-        } catch (ReflectionException $exception) {
+        } catch (ReflectionException) {
             return false;
         }
     }

@@ -3,9 +3,12 @@
 namespace App\Tests\Api;
 
 use App\Entity\MediaObject;
+use Zenstruck\Messenger\Test\InteractsWithMessenger;
 
 class MediaObjectTest extends ApiTester
 {
+
+    use InteractsWithMessenger;
 
     public function testCreateAMediaObjectInvalid(): void
     {
@@ -27,10 +30,20 @@ class MediaObjectTest extends ApiTester
 
         $this->assertResponseIsSuccessful();
 
-        $this->assertMatchesResourceItemJsonSchema(MediaObject::class);
-
         $this->assertEquals("api_platform_logo.png", $data['originalName']);
         $this->assertEquals("image/png", $data['mimeType']);
+
+        $this->messenger()->throwExceptions();
+        $this->messenger()->queue()->assertCount(1);
+        $this->messenger()->queue()->assertContains(MediaObject::class);
+        $this->messenger()->process(1);
+
+        $data = $this->get($data['@id']);
+        $this->assertResponseIsSuccessful();
+
+        $this->assertCount(2, $data['thumbnails']);
+
+        $this->assertCollectionKeyContains($data["thumbnails"], "thumbnailSize", ["50x50", "200x*"]);
     }
 
 
@@ -56,7 +69,6 @@ class MediaObjectTest extends ApiTester
         $this->assertCollectionKeyContains($data, "altText", $object->altText);
         $this->assertCollectionKeyContains($data, "mimeType", $object->mimeType);
         $this->assertCollectionKeyContains($data, "originalName", $object->originalName);
-
     }
 
 
@@ -79,11 +91,10 @@ class MediaObjectTest extends ApiTester
 
         $data = $this->getJsonAttributes($data);
 
-        $this->assertEquals($object->altText,$data['altText']);
-        $this->assertEquals($object->mimeType,$data['mimeType']);
-        $this->assertEquals($object->originalName,$data['originalName']);
-        $this->assertStringContainsString("http",$data['previewUrl']);
-
+        $this->assertEquals($object->altText, $data['altText']);
+        $this->assertEquals($object->mimeType, $data['mimeType']);
+        $this->assertEquals($object->originalName, $data['originalName']);
+        $this->assertStringStartsWith("https://localhost:4566/", $data['previewUrl']);
     }
 
 

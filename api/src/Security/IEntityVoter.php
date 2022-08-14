@@ -11,17 +11,17 @@ use Symfony\Component\Security\Core\Authorization\Voter\Voter;
 abstract class IEntityVoter extends Voter
 {
 
-    public const VIEW = "VIEW";
+    final public const VIEW = "VIEW";
 
-    public const CREATE = "CREATE";
+    final public const CREATE = "CREATE";
 
-    public const UPDATE = "UPDATE";
+    final public const UPDATE = "UPDATE";
 
-    public const DELETE = "DELETE";
+    final public const DELETE = "DELETE";
 
-    public const ARCHIVE = "ARCHIVE";
+    final public const ARCHIVE = "ARCHIVE";
 
-    public const DISARCHIVE = "DISARCHIVE";
+    final public const DISARCHIVE = "DISARCHIVE";
 
 
     public function __construct(protected EntityManagerInterface $em)
@@ -37,12 +37,7 @@ abstract class IEntityVoter extends Voter
         if (!$this->supportsAttribute($attribute)) {
             return false;
         }
-
-        if (!$this->supportsEntity($subject)) {
-            return false;
-        }
-
-        return true;
+        return $this->supportsEntity($subject);
     }
 
 

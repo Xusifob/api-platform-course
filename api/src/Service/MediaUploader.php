@@ -3,9 +3,11 @@
 namespace App\Service;
 
 
+use ApiPlatform\Metadata\Resource\Factory\ResourceMetadataCollectionFactoryInterface;
 use App\Entity\MediaObject;
 use Aws\S3\S3Client;
 use DateTime;
+use GuzzleHttp\Psr7\Stream;
 use Symfony\Contracts\Cache\CacheInterface;
 use Symfony\Contracts\Cache\ItemInterface;
 
@@ -13,10 +15,39 @@ class MediaUploader
 {
 
     public function __construct(
+        public readonly ResourceMetadataCollectionFactoryInterface $metadataFactory,
         public readonly string $bucket,
         private readonly S3Client $s3ReadClient,
+        private readonly S3Client $s3WriteClient,
         private readonly CacheInterface $cache
     ) {
+    }
+
+
+    public function getReadEndpoint(): string
+    {
+        return $this->s3ReadClient->getEndpoint();
+    }
+
+    public function getWriteEndpoint(): string
+    {
+        return $this->s3WriteClient->getEndpoint();
+    }
+
+
+    public function moveFile(MediaObject $object): string
+    {
+        $path = $this->getFilePath($object);
+        $this->s3WriteClient->copy($object->bucket, $object->filePath, $object->bucket, $path);
+
+        $this->s3WriteClient->deleteObject([
+            'Bucket' => $object->bucket,
+            'Key' => $object->filePath,
+        ]);
+
+        $this->cache->delete($this->getCacheKey($object));
+
+        return $path;
     }
 
 
@@ -40,9 +71,31 @@ class MediaUploader
     }
 
 
+    public function upload(MediaObject $object, string $file): void
+    {
+        $this->s3WriteClient->upload($object->bucket, $object->filePath, file_get_contents($file), "private", [
+            'Metadata' => [
+                "contentType" => $object->mimeType
+            ]
+        ]);
+    }
+
+    public function getFileContent(string $key): Stream
+    {
+        $file = $this->s3WriteClient->getObject([
+            'Bucket' => $this->bucket,
+            'Key' => $key,
+        ]);
+
+        return $file['Body'];
+    }
+
+
     private function getCacheKey(MediaObject $object): string
     {
-        return "media_uploader_signed_url_{$object->getId()}";
+        $id = $object->getId() ?? uniqid();
+
+        return "media_uploader_signed_url_$id";
     }
 
 
@@ -65,5 +118,16 @@ class MediaUploader
         return $this->s3ReadClient->createPresignedRequest($cmd, "+ {$expire} seconds")->getUri();
     }
 
+
+    private function getFilePath(MediaObject $object): string
+    {
+        $metadata = $this->metadataFactory->create($object::class);
+
+        $shortName = $metadata->getOperation()->getShortName();
+
+        $filename = basename($object->filePath);
+
+        return "$shortName/{$object->getId()}/$filename";
+    }
 
 }

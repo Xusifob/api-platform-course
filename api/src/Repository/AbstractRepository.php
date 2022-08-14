@@ -38,7 +38,7 @@ abstract class AbstractRepository extends ServiceEntityRepository implements IRe
     // https://stackoverflow.com/questions/12808597/php-verify-valid-uuid
     protected function isUUId(string $id): bool
     {
-        return !!preg_match(
+        return (bool) preg_match(
             "#^[\dA-F]{8}-[\dA-F]{4}-[\dA-F]{4}-[89AB][\dA-F]{3}-[\dA-F]{12}$#i",
             $id
         );

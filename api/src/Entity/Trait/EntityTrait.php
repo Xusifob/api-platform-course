@@ -29,9 +29,6 @@ trait EntityTrait
 
     protected array $rights = [];
 
-    /**
-     * @return string|null
-     */
     public function getId(): ?string
     {
         return $this->id;

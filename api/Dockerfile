@@ -62,6 +62,12 @@ RUN apk add --no-cache --virtual .pgsql-deps postgresql-dev; \
 ###< doctrine/doctrine-bundle ###
 ###< recipes ###
 
+### Imagick
+ADD https://github.com/mlocati/docker-php-extension-installer/releases/latest/download/install-php-extensions /usr/local/bin/
+
+RUN chmod uga+x /usr/local/bin/install-php-extensions && sync && \
+    install-php-extensions imagick
+
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
 RUN ln -s $PHP_INI_DIR/php.ini-production $PHP_INI_DIR/php.ini
@@ -130,6 +136,11 @@ RUN xcaddy build \
 FROM caddy:${CADDY_VERSION} AS api_platform_caddy
 
 WORKDIR /srv/api
+
+RUN mkdir /home/www-data/.aws/
+COPY docker/php/aws_credentials /home/www-data/.aws/credentials
+RUN mkdir /root/.aws/
+COPY docker/php/aws_credentials /root/.aws/credentials
 
 COPY --from=api_platform_caddy_builder /usr/bin/caddy /usr/bin/caddy
 COPY --from=api_platform_php /srv/api/public public/

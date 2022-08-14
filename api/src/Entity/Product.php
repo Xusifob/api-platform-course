@@ -99,7 +99,7 @@ class Product extends Entity implements IStatusEntity, INamedEntity
     #[Groups(["product"])]
     #[ORM\ManyToOne(targetEntity: MediaObject::class, cascade: ["remove"])]
     #[IsMedia(type: MediaType::IMAGE, message: "product.main_photo.type_invalid")]
-    public ?MediaObject $mainPhoto;
+    public ?MediaObject $mainPhoto = null;
 
 
     public function __construct(array $data = [])
@@ -109,19 +109,12 @@ class Product extends Entity implements IStatusEntity, INamedEntity
         $this->categories = new ArrayCollection();
     }
 
-    /**
-     * @return Collection
-     */
     public function getCategories(): Collection
     {
         return $this->categories;
     }
 
 
-    /**
-     * @param ProductCategory $category
-     * @return void
-     */
     public function addCategory(ProductCategory $category): void
     {
         if (!$this->categories->contains($category)) {
@@ -130,19 +123,12 @@ class Product extends Entity implements IStatusEntity, INamedEntity
     }
 
 
-    /**
-     * @param ProductCategory $category
-     * @return void
-     */
     public function removeCategory(ProductCategory $category): void
     {
         $this->categories->removeElement($category);
     }
 
 
-    /**
-     * @param Collection $categories
-     */
     public function setCategories(Collection $categories): void
     {
         $this->categories = $categories;
@@ -153,7 +139,7 @@ class Product extends Entity implements IStatusEntity, INamedEntity
     #[Groups(["read"])]
     public function isSale(): bool
     {
-        return !!$this->discountPercent;
+        return (bool) $this->discountPercent;
     }
 
 
@@ -170,7 +156,7 @@ class Product extends Entity implements IStatusEntity, INamedEntity
 
     public static function generateReference(): string
     {
-        return sprintf("P%s", rand(10000, 9999999999));
+        return sprintf("P%s", random_int(10000, 9_999_999_999));
     }
 
 

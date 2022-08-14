@@ -21,7 +21,7 @@ class AuthenticationTest extends ApiTester
         $data = $this->login($username);
         $this->assertResponseIsSuccessful();
 
-        $this->assertArrayHasKeys(["token", "refresh_token", "refresh_token_expiration"], $data);
+        $this->assertArrayHasKeys(["token", "mercure_token", "refresh_token", "refresh_token_expiration"], $data);
 
         $data = $this->get("users/me");
         $this->assertEquals($username, $data['email']);

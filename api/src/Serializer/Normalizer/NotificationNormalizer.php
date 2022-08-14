@@ -23,8 +23,6 @@ class NotificationNormalizer implements NormalizerInterface, NormalizerAwareInte
     /**
      * @param Notification $object
      * @param string|null $format
-     * @param array $context
-     * @return array
      * @throws ExceptionInterface
      */
     public function normalize($object, string $format = null, array $context = []): array

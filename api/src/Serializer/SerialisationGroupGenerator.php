@@ -12,17 +12,10 @@ class SerialisationGroupGenerator implements SerializerContextBuilderInterface
 {
 
 
-    private SerializerContextBuilderInterface $decorated;
-
-    protected ResourceMetadataCollectionFactoryInterface $metadataFactory;
-
-
     public function __construct(
-        ResourceMetadataCollectionFactoryInterface $metadataFactory,
-        SerializerContextBuilderInterface $decorated
+        private readonly ResourceMetadataCollectionFactoryInterface $metadataFactory,
+        private readonly SerializerContextBuilderInterface $decorated
     ) {
-        $this->metadataFactory = $metadataFactory;
-        $this->decorated = $decorated;
     }
 
 
@@ -72,7 +65,7 @@ class SerialisationGroupGenerator implements SerializerContextBuilderInterface
     {
         $route = $request->attributes->get("_route");
 
-        $isCollection = preg_match("#get_collection$#", $route);
+        $isCollection = preg_match("#get_collection$#", (string) $route);
 
         return $isCollection ? "collection" : "item";
     }

@@ -2,6 +2,8 @@
 
 namespace App\Serializer\Normalizer;
 
+use ArrayObject;
+use App\Entity\IEntity;
 use App\Entity\MediaObject;
 use App\Service\MediaUploader;
 use Aws\S3\S3Client;
@@ -23,17 +25,14 @@ final class MediaObjectNormalizer implements NormalizerInterface, NormalizerAwar
 
     /**
      * @param MediaObject $object
-     * @param string|null $format
-     * @param array $context
-     * @return array|string|int|float|bool|\ArrayObject|null
      * @throws ExceptionInterface
      */
     public function normalize(
         $object,
         ?string $format = null,
         array $context = []
-    ): array|string|int|float|bool|\ArrayObject|null {
-        $context[self::ALREADY_CALLED] = true;
+    ): array|string|int|float|bool|ArrayObject|null {
+        $context[self::buildCalledKey($object)] = true;
 
         $object->previewUrl = $this->uploader->getS3SignedUrl($object);
 
@@ -42,11 +41,17 @@ final class MediaObjectNormalizer implements NormalizerInterface, NormalizerAwar
 
     public function supportsNormalization($data, ?string $format = null, array $context = []): bool
     {
-        if (isset($context[self::ALREADY_CALLED])) {
+        if (!($data instanceof MediaObject)) {
             return false;
         }
+        // Make sure we're not called twice
+        return !isset($context[self::buildCalledKey($data)]);
+    }
 
-        return $data instanceof MediaObject;
+
+    private function buildCalledKey(MediaObject $entity): string
+    {
+        return sprintf('%s_%s', self::ALREADY_CALLED, $entity->getId());
     }
 
 

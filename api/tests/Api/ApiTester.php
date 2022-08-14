@@ -464,7 +464,7 @@ abstract class ApiTester extends ApiTestCase
     protected function getFormatCollection(array $collection): array
     {
         return match ($this->format) {
-            self::FORMAT_JSONLD => $collection['hydra:member'],
+            self::FORMAT_JSONLD => $collection['hydra:member'] ?? $collection,
             self::FORMAT_JSONAPI => $this->getJsonApiCollection($collection),
         };
     }

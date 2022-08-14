@@ -11,7 +11,6 @@ class IsReferenceValidator extends ConstraintValidator
     private const PATTERN = "#^P\d{3,15}$#";
 
     /**
-     * @param mixed $value
      * @param IsReference $constraint
      */
     public function validate(mixed $value, Constraint $constraint)

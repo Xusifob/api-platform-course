@@ -3,6 +3,7 @@
 namespace App\Security;
 
 
+use LogicException;
 use App\Entity\MediaObject;
 use App\Entity\Product;
 use App\Entity\User;
@@ -33,7 +34,7 @@ class MediaObjectVoter extends IEntityVoter
         return match ($attribute) {
             self::CREATE => $this->canCreate($subject, $user),
             self::VIEW => $this->canView($subject, $user),
-            default => throw new \LogicException("Attribute $attribute is not supported")
+            default => throw new LogicException("Attribute $attribute is not supported")
         };
     }
 

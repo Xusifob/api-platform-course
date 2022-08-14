@@ -3,6 +3,7 @@
 namespace App\Security;
 
 
+use LogicException;
 use App\Entity\IEntity;
 use App\Entity\IStatusEntity;
 use App\Entity\User;
@@ -24,7 +25,7 @@ abstract class IStatusVoter extends IEntityVoter
             self::DELETE => $this->canDelete($subject, $user),
             self::ARCHIVE => $this->canArchive($subject, $user),
             self::DISARCHIVE => $this->canDisArchive($subject, $user),
-            default => throw new \LogicException("Attribute $attribute is not supported")
+            default => throw new LogicException("Attribute $attribute is not supported")
         };
     }
 

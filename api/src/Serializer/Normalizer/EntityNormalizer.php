@@ -3,8 +3,7 @@
 namespace App\Serializer\Normalizer;
 
 use App\Entity\IEntity;
-use App\Entity\Notification;
-use Symfony\Component\Security\Core\Authorization\AccessDecisionManager;
+use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 use Symfony\Component\Security\Core\Authorization\AccessDecisionManagerInterface;
 use Symfony\Component\Security\Core\Security;
 use Symfony\Component\Serializer\Exception\ExceptionInterface;
@@ -28,8 +27,6 @@ class EntityNormalizer implements NormalizerInterface, NormalizerAwareInterface,
     /**
      * @param IEntity $object
      * @param string|null $format
-     * @param array $context
-     * @return array
      * @throws ExceptionInterface
      */
     public function normalize($object, string $format = null, array $context = []): array
@@ -40,8 +37,8 @@ class EntityNormalizer implements NormalizerInterface, NormalizerAwareInterface,
 
         foreach ($object->getRightKeys() as $right) {
             // @Todo here add cache inside redis for example
-            $vote = $token ? $this->accessDecisionManager->decide($token, [$right], $object) : false;
-            $object->setRight(strtolower($right), $vote);
+            $vote = $token instanceof TokenInterface && $this->accessDecisionManager->decide($token, [$right], $object);
+            $object->setRight(strtolower((string) $right), $vote);
         }
 
         return $this->normalizer->normalize($object, $format, $context);
@@ -52,13 +49,8 @@ class EntityNormalizer implements NormalizerInterface, NormalizerAwareInterface,
         if (!$data instanceof IEntity) {
             return false;
         }
-
         // Make sure we're not called twice
-        if (isset($context[self::buildCalledKey($data)])) {
-            return false;
-        }
-
-        return true;
+        return !isset($context[self::buildCalledKey($data)]);
     }
 
 
