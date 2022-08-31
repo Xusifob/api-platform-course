@@ -36,9 +36,11 @@ class ThumbnailGenerator
         $tmp = tempnam(sys_get_temp_dir(), 'thumb');
         file_put_contents($tmp, $file);
 
-        foreach ($object->getThumbnailsSizes() as $size) {
-            $file = $this->generateThumbnail($object, $size, $tmp);
-            $this->saveThumbnail($object, $size, $file);
+        foreach ($object::THUMBNAIL_SIZES as $size) {
+            if ($size) {
+                $file = $this->generateThumbnail($object, $size, $tmp);
+                $this->saveThumbnail($object, $size, $file);
+            }
         }
 
         $this->em->flush();

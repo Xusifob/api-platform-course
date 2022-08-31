@@ -21,12 +21,28 @@ trait EntityTrait
      */
     #[ORM\Id]
     #[ORM\Column(type: 'uuid', unique: true, nullable: false)]
-    #[ApiProperty(iris: "https://schema.org/identifier")]
+    #[ApiProperty(schema: [
+        "type" => "string",
+        "format" => "uuid",
+        "nullable" => false
+    ], iris: "https://schema.org/identifier")]
     #[Groups(["read"])]
     #[ORM\GeneratedValue(strategy: "CUSTOM")]
     #[ORM\CustomIdGenerator(class: UuidGenerator::class)]
     protected $id;
 
+    #[ApiProperty(schema: [
+        "writeable" => false,
+        "type" => "object",
+        "properties" => [
+            "update" => [
+                "type" => "boolean",
+            ],
+            "delete" => [
+                "type" => "boolean",
+            ]
+        ]
+    ])]
     protected array $rights = [];
 
     public function getId(): ?string
@@ -35,6 +51,7 @@ trait EntityTrait
     }
 
 
+    #[ApiProperty(readable: false, writable: false)]
     public function setEntityData(array $data = []): void
     {
         foreach ($data as $key => $val) {
@@ -43,6 +60,7 @@ trait EntityTrait
     }
 
 
+    #[ApiProperty(readable: false, writable: false)]
     public function setEntityValue(string $key, string|int|array|null|object $value): void
     {
         $vars = get_object_vars($this);
@@ -84,6 +102,7 @@ trait EntityTrait
     }
 
 
+    #[ApiProperty(readable: false, writable: false)]
     public function getRightKeys(): array
     {
         return [
@@ -91,7 +110,6 @@ trait EntityTrait
             IEntityVoter::DELETE,
         ];
     }
-
 
     public function __toString(): string
     {

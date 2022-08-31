@@ -60,16 +60,24 @@ use Vich\UploaderBundle\Mapping\Annotation as Vich;
 class MediaObject extends Entity implements IOwnedEntity
 {
 
-    final public const MIME_TYPES = [
+    public const MIME_TYPES = [
         'image/png',
         'image/jpeg',
         'iamge/png',
         'application/pdf'
     ];
 
+    public const THUMBNAIL_SIZES = [null, "50x50", "200x*"];
+
     use OwnedTrait;
 
-    #[ApiProperty(types: ['https://schema.org/contentUrl'])]
+    #[ApiProperty(
+        types: ['https://schema.org/contentUrl'],
+        schema: [
+            'type' => 'string',
+            'description' => "The public URL of the image.",
+            'example' => 'https://localhost:4566/api-platform-course/62f8ea20b1371433975813.jpg'
+        ])]
     #[Groups(['read'])]
     public ?string $previewUrl = null;
 
@@ -81,12 +89,19 @@ class MediaObject extends Entity implements IOwnedEntity
         mimeType: "mimeType",
         originalName: "originalName"
     )]
+    #[ApiProperty(readable: false, writable: false)]
     #[Assert\NotNull(groups: ['media_object:post'])]
     public ?File $file = null;
 
     #[ORM\Column(nullable: true)]
+    #[ApiProperty(readable: false, writable: false)]
     public ?string $filePath = null;
 
+    #[ApiProperty(schema: [
+        'type' => 'string',
+        'description' => "The original name of the photo",
+        'example' => 'lake_photo.png'
+    ])]
     #[ORM\Column(nullable: true)]
     #[Groups(['media_object:read'])]
     #[Assert\NotNull(message: "media_object.original_name.not_null")]
@@ -98,28 +113,47 @@ class MediaObject extends Entity implements IOwnedEntity
     public ?int $size = null;
 
     #[ORM\Column(nullable: false)]
+    #[ApiProperty(readable: false, writable: false)]
     #[Assert\NotNull(message: "media_object.bucket.not_null")]
     public ?string $bucket = null;
 
+    #[ApiProperty(schema: [
+        'type' => ['string', 'null'],
+        'description' => "The alt attribute of the image",
+        'example' => 'A lake with a small boat and two fisherman',
+        'required' => false,
+    ])]
     #[ORM\Column(nullable: true)]
     #[Groups(['read'])]
     public ?string $altText = null;
 
+    #[ApiProperty(writable: false, schema: [
+        'type' => 'string',
+        'enum' => self::MIME_TYPES
+    ])]
     #[ORM\Column(nullable: false)]
     #[Groups(['read'])]
     #[Assert\NotNull(message: "media_object.mime_type.not_null")]
     #[Assert\Choice(choices: self::MIME_TYPES, message: "media_object.mime_type.invalid")]
     public ?string $mimeType = null;
 
+    #[ApiProperty(writable: false)]
     #[ORM\Column(type: "datetime", nullable: false)]
     #[Groups(['media_object:read'])]
     #[Assert\NotNull(message: "media_object.upload_time.not_null")]
     public ?DateTimeInterface $uploadTime = null;
 
     #[ORM\Column(type: "boolean", nullable: false)]
+    #[ApiProperty(readable: false, writable: false)]
     public bool $isThumbnail = false;
 
     #[Groups(["read"])]
+    #[ApiProperty(writable: false, schema: [
+        'type' => ['string', 'null'],
+        'description' => "If this media is a thumbnail, this is the size of it (width*height)",
+        'enum' => self::THUMBNAIL_SIZES,
+        'required' => false
+    ])]
     #[ORM\Column(type: "string", length: 20, nullable: true)]
     public null|string $thumbnailSize = null;
 
@@ -128,7 +162,13 @@ class MediaObject extends Entity implements IOwnedEntity
      */
     #[Groups(["read"])]
     #[MaxDepth(1)]
-    #[ORM\OneToMany(mappedBy: "mainObject", targetEntity: MediaObject::class, cascade: ["persist","remove"])]
+    #[ApiProperty(writable: false, schema: [
+        'type' => 'array',
+        'items' => [
+            '$ref' => '#/components/schemas/MediaObject'
+        ]
+    ])]
+    #[ORM\OneToMany(mappedBy: "mainObject", targetEntity: MediaObject::class, cascade: ["persist", "remove"])]
     #[ORM\JoinColumn(referencedColumnName: 'id', nullable: true, onDelete: "SET NULL")]
     public Collection $thumbnails;
 
@@ -136,6 +176,7 @@ class MediaObject extends Entity implements IOwnedEntity
      * @var MediaObject|null
      */
     #[ORM\ManyToOne(targetEntity: MediaObject::class, inversedBy: "thumbnails")]
+    #[ApiProperty(readable: false, writable: false)]
     #[ORM\JoinColumn(referencedColumnName: 'id', nullable: true)]
     public MediaObject|null $mainObject = null;
 
@@ -176,11 +217,6 @@ class MediaObject extends Entity implements IOwnedEntity
         $this->thumbnails->removeElement($object);
 
         return $this;
-    }
-
-    public function getThumbnailsSizes(): array
-    {
-        return ["50x50", "200x*"];
     }
 
 

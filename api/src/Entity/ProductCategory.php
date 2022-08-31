@@ -44,12 +44,22 @@ class ProductCategory extends Entity implements IStatusEntity, INamedEntity
 
     #[Groups(["product", "product_category"])]
     #[ORM\Column(type: 'string', length: 255, nullable: false)]
-    #[ApiProperty(iris: "https://schema.org/name")]
+    #[ApiProperty(schema: [
+        'type' => 'string',
+        'maxLength' => 255,
+        'minLength' => 1,
+        'example' => 'Man shoes',
+        'required' => true
+    ], iris: "https://schema.org/name")]
     public ?string $name = null;
 
     #[Groups(["product_category"])]
     #[ORM\Column(type: 'text', nullable: false)]
-    #[ApiProperty(iris: "https://schema.org/description")]
+    #[ApiProperty(schema: [
+        'type' => 'string',
+        'example' => 'The description of the product category',
+        'required' => true
+    ], iris: "https://schema.org/description")]
     public ?string $description = null;
 
     /**
@@ -57,6 +67,7 @@ class ProductCategory extends Entity implements IStatusEntity, INamedEntity
      */
     #[ORM\ManyToMany(targetEntity: Product::class, mappedBy: "categories")]
     #[Link(toProperty: "categories")]
+    #[ApiProperty(readable: false, writable: false)]
     private Collection $products;
 
 

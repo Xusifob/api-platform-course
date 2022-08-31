@@ -2,6 +2,7 @@
 
 namespace App\Entity\Trait;
 
+use ApiPlatform\Metadata\ApiProperty;
 use App\Entity\User;
 use Doctrine\ORM\Mapping as ORM;
 
@@ -12,6 +13,7 @@ trait OwnedTrait
     /**
      * @var User|null
      */
+    #[ApiProperty(readable: false, writable: false)]
     #[ORM\ManyToOne(targetEntity: User::class, cascade: ["remove"])]
     #[ORM\JoinColumn(referencedColumnName: 'id', nullable: false)]
     public ?User $owner = null;

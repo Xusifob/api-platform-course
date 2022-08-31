@@ -23,6 +23,7 @@ interface IEntity extends Stringable
     public function setRight(string $key, bool $value) : self;
 
 
+
     public function getRightKeys() : array;
 
 

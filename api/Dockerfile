@@ -133,6 +133,13 @@ RUN xcaddy build \
     --with github.com/dunglas/vulcain \
     --with github.com/dunglas/vulcain/caddy
 
+# Install nodejs
+ENV ALPINE_MIRROR "http://dl-cdn.alpinelinux.org/alpine"
+RUN echo "${ALPINE_MIRROR}/edge/main" >> /etc/apk/repositories
+RUN apk add --no-cache nodejs-current npm  --repository="http://dl-cdn.alpinelinux.org/alpine/edge/community"
+RUN node --version
+RUN npm install -g yarn
+
 FROM caddy:${CADDY_VERSION} AS api_platform_caddy
 
 WORKDIR /srv/api

@@ -88,9 +88,7 @@ abstract class ApiTester extends ApiTestCase
         $response = $this->apiClient->request('POST', $url, [
             'headers' => $this->getHeaders(['Content-Type' => 'multipart/form-data']),
             'extra' => [
-                'parameters' => [
-                    'title' => $params,
-                ],
+                'parameters' => $params,
                 'files' => [
                     'file' => $file,
                 ],

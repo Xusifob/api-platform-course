@@ -26,11 +26,18 @@ class MediaObjectTest extends ApiTester
     {
         $this->login("customer");
 
-        $data = $this->uploadFile("upload", __DIR__ . '/../../fixtures/files/api_platform_logo.png');
+        $altText = "My alt text";
+
+        $data = $this->uploadFile("upload", __DIR__ . '/../../fixtures/files/api_platform_logo.png',[
+            "altText" => $altText
+        ]);
 
         $this->assertResponseIsSuccessful();
 
+        $this->assertMatchesResourceItemJsonSchema(MediaObject::class);
+
         $this->assertEquals("api_platform_logo.png", $data['originalName']);
+        $this->assertEquals($altText, $data['altText']);
         $this->assertEquals("image/png", $data['mimeType']);
 
         $this->messenger()->throwExceptions();

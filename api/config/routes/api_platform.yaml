@@ -1,5 +1,6 @@
 api_platform:
     resource: .
     type: api_platform
-    
-    
+
+api_entrypoint:
+    path: /api

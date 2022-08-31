@@ -4,7 +4,10 @@ namespace App\Serializer;
 
 use ApiPlatform\Metadata\Resource\Factory\ResourceMetadataCollectionFactoryInterface;
 use ApiPlatform\Serializer\SerializerContextBuilderInterface;
+use App\Entity\User;
 use Symfony\Component\HttpFoundation\Request;
+
+use Symfony\Component\Security\Core\Security;
 
 use function Symfony\Component\String\u;
 
@@ -13,6 +16,7 @@ class SerialisationGroupGenerator implements SerializerContextBuilderInterface
 
 
     public function __construct(
+        private readonly Security $security,
         private readonly ResourceMetadataCollectionFactoryInterface $metadataFactory,
         private readonly SerializerContextBuilderInterface $decorated
     ) {
@@ -36,14 +40,20 @@ class SerialisationGroupGenerator implements SerializerContextBuilderInterface
         $shortName = $this->extractShortName($request);
         $operationType = $this->extractOperationType($request);
         $method = $this->extractMethod($request);
+        $role = $this->getRole();
         $process = $normalization ? "read" : "write";
 
         return [
-            $process,
-            $shortName,
+            "$process",
+            "$shortName",
             "$shortName:$process",
             "$shortName:$method",
-            "$shortName:$operationType"
+            "$shortName:$operationType",
+            "$role:$process",
+            "$role:$shortName",
+            "$role:$shortName:$process",
+            "$role:$shortName:$method",
+            "$role:$shortName:$operationType",
         ];
     }
 
@@ -65,7 +75,7 @@ class SerialisationGroupGenerator implements SerializerContextBuilderInterface
     {
         $route = $request->attributes->get("_route");
 
-        $isCollection = preg_match("#get_collection$#", (string) $route);
+        $isCollection = preg_match("#get_collection$#", (string)$route);
 
         return $isCollection ? "collection" : "item";
     }
@@ -76,5 +86,15 @@ class SerialisationGroupGenerator implements SerializerContextBuilderInterface
         return strtolower($request->getMethod());
     }
 
+    private function getRole(): string
+    {
+        $user = $this->security->getUser();
+
+        if (!($user instanceof User)) {
+            return "role_public";
+        }
+
+        return strtolower($user->getRole()->value);
+    }
 
 }

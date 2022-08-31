@@ -21,6 +21,7 @@ final class MediaObjectExtension extends AbstractExtension implements QueryColle
         Operation $operation = null,
         array $context = []
     ): void {
+
         if (!$this->supports($resourceClass, $operation, $context)) {
             return;
         }

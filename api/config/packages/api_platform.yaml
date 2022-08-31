@@ -35,7 +35,7 @@ api_platform:
     mercure: ~
     # Good cache defaults for REST APIs
     defaults:
-        pagination_items_per_page: 30
+        pagination_items_per_page: 3
         pagination_client_items_per_page: true
         pagination_maximum_items_per_page: 100
             

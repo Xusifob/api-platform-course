@@ -18,9 +18,10 @@ use Symfony\Component\Security\Core\Security;
 final class CreateMediaObjectAction extends AbstractController
 {
 
-    public function __construct(private readonly ThumbnailGenerator $thumbnailGenerator,private readonly MediaUploader $uploader,private readonly Security $security)
-    {
-
+    public function __construct(
+        private readonly MediaUploader $uploader,
+        private readonly Security $security
+    ) {
     }
 
 
