@@ -3,6 +3,7 @@
 namespace App\Serializer;
 
 use ApiPlatform\Metadata\Resource\Factory\ResourceMetadataCollectionFactoryInterface;
+use ApiPlatform\Metadata\Resource\ResourceMetadataCollection;
 use ApiPlatform\Serializer\SerializerContextBuilderInterface;
 use App\Entity\User;
 use Symfony\Component\HttpFoundation\Request;
@@ -43,7 +44,25 @@ class SerialisationGroupGenerator implements SerializerContextBuilderInterface
         $role = $this->getRole();
         $process = $normalization ? "read" : "write";
 
-        return [
+        return self::buildGroups(
+            process: $process,
+            shortName: $shortName,
+            operationType: $operationType,
+            method: $method,
+            role: $role
+        );
+    }
+
+
+    public static function buildGroups(
+        array $groups = [],
+        string $process = "unknown",
+        string $shortName = "unknown",
+        string $operationType = "unknown",
+        string $method = "unknown",
+        string $role = "unknown",
+    ): array {
+        $groups = [
             "$process",
             "$shortName",
             "$shortName:$process",
@@ -55,6 +74,10 @@ class SerialisationGroupGenerator implements SerializerContextBuilderInterface
             "$role:$shortName:$method",
             "$role:$shortName:$operationType",
         ];
+
+        return array_filter($groups, function (string $group) {
+            return !str_contains($group, "unknown");
+        });
     }
 
 
@@ -64,10 +87,7 @@ class SerialisationGroupGenerator implements SerializerContextBuilderInterface
 
         $metadata = $this->metadataFactory->create($class);
 
-        $shortName = $metadata->getOperation()->getShortName();
-
-        // https://symfony.com/doc/current/components/string.html#methods-to-change-case
-        return u($shortName)->snake()->toString();
+        return self::getShortName($metadata);
     }
 
 
@@ -95,6 +115,15 @@ class SerialisationGroupGenerator implements SerializerContextBuilderInterface
         }
 
         return strtolower($user->getRole()->value);
+    }
+
+
+    public static function getShortName(ResourceMetadataCollection $resourceMetadata): string
+    {
+        $shortName = $resourceMetadata->getOperation()->getShortName();
+
+        // https://symfony.com/doc/current/components/string.html#methods-to-change-case
+        return u($shortName)->snake()->toString();
     }
 
 }

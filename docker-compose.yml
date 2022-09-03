@@ -4,54 +4,26 @@ services:
   php:
     build:
       context: ./api
-      target: api_platform_php
+    ports:
+      - "80:80"
+      - "443:443"
+      - "3000:3000"
     depends_on:
       - database
     restart: unless-stopped
     volumes:
-      - php_socket:/var/run/php
-    healthcheck:
-      interval: 10s
-      timeout: 3s
-      retries: 3
-      start_period: 30s
+      - ./api/:/var/www/html/
+      - ./api/docker/php/000-default.conf:/etc/apache2/sites-available/000-default.conf
+      - ./api/docker/php/ports.conf:/etc/apache2/ports.conf
+      - ./api/docker/php/aws_credentials:/home/www-data/.aws/credentials
+      - ./api/docker/php/aws_credentials:/root/.aws/credentials
+      
     environment:
       TRUSTED_PROXIES: ${TRUSTED_PROXIES:-127.0.0.0/8,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16}
       TRUSTED_HOSTS: ^${SERVER_NAME:-example\.com|localhost}|caddy$$
-      MERCURE_URL: ${CADDY_MERCURE_URL:-http://caddy/.well-known/mercure}
-      MERCURE_PUBLIC_URL: https://${SERVER_NAME:-localhost}/.well-known/mercure
-      MERCURE_JWT_SECRET: ${CADDY_MERCURE_JWT_SECRET:-!ChangeMe!}
+      GITHUB_TOKEN: ${GITHUB_TOKEN}
+      MERCURE_JWT_SECRET: ${MERCURE_JWT_SECRET}
 
-
-  caddy:
-    build:
-      context: api/
-      target: api_platform_caddy
-    depends_on:
-      - php
-    environment:
-      SERVER_NAME: ${SERVER_NAME:-localhost, caddy:80}
-      MERCURE_PUBLISHER_JWT_KEY: ${CADDY_MERCURE_JWT_SECRET:-!ChangeMe!}
-      MERCURE_SUBSCRIBER_JWT_KEY: ${CADDY_MERCURE_JWT_SECRET:-!ChangeMe!}
-    restart: unless-stopped
-    volumes:
-      - php_socket:/var/run/php
-      - caddy_data:/data
-      - caddy_config:/config
-
-    ports:
-      # HTTP
-      - target: 80
-        published: ${HTTP_PORT:-80}
-        protocol: tcp
-      # HTTPS
-      - target: 443
-        published: ${HTTPS_PORT:-443}
-        protocol: tcp
-      # HTTP/3
-      - target: 443
-        published: ${HTTP3_PORT:-443}
-        protocol: udp
 
   database:
     image: postgres:${POSTGRES_VERSION:-13}-alpine
@@ -62,8 +34,6 @@ services:
       - POSTGRES_USER=${POSTGRES_USER:-api-platform}
     volumes:
       - db_data:/var/lib/postgresql/data:rw
-      # you may use a bind-mounted host directory instead, so that it is harder to accidentally remove the volume and lose all your data!
-      # - ./api/docker/db/data:/var/lib/postgresql/data:rw
     ports:
       - "5431:5432"
     
@@ -91,24 +61,47 @@ services:
       - DEBUG=1
       - START_WEB=1
       - HOST_TMP_FOLDER=${TMPDIR:-/tmp/}localstack
-      - DATA_DIR=${TMPDIR:-/tmp/}localstack/data
+      - DATA_DIR=/tmp/localstack/data
       - DOCKER_HOST=unix:///var/run/docker.sock
       - HOSTNAME_EXTERNAL=aws
     volumes:
       - ./shared/docker/aws:/docker-entrypoint-initaws.d
-      - "${TMPDIR:-/tmp}/localstack:/tmp/localstack"
+      - localstack-data:/tmp/localstack
       - "/var/run/docker.sock:/var/run/docker.sock"
 
-# Mercure is installed as a Caddy module, prevent the Flex recipe from installing another service
+  # https://medium.com/@TimvanBaarsen/how-to-run-an-elasticsearch-7-x-single-node-cluster-for-local-development-using-docker-compose-2b7ab73d8b82:
+  elasticsearch:
+    image: elasticsearch:7.17.6
+    volumes:
+      - elasticsearch-data:/usr/share/elasticsearch/data
+    environment:
+      - xpack.security.enabled=false
+      - discovery.type=single-node
+      - discovery.zen.minimum_master_nodes=1
+      - cluster.routing.allocation.disk.threshold_enabled=true
+      - cluster.routing.allocation.disk.watermark.low=100mb
+      - cluster.routing.allocation.disk.watermark.high=50mb
+      - cluster.routing.allocation.disk.watermark.flood_stage=10mb
+      - cluster.info.update.interval=1m
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+
 ###> symfony/mercure-bundle ###
+  mercure:
+    image: dunglas/mercure
+    restart: unless-stopped
+    environment:
+      SERVER_NAME: ":80"
+      MERCURE_PUBLISHER_JWT_KEY: ${MERCURE_JWT_SECRET}
+      MERCURE_SUBSCRIBER_JWT_KEY: ${MERCURE_JWT_SECRET}
+    
 ###< symfony/mercure-bundle ###
 
 volumes:
-  php_socket:
-  caddy_data:
-  caddy_config:
+  elasticsearch-data:
+  localstack-data:
 ###> doctrine/doctrine-bundle ###
   db_data:
 ###< doctrine/doctrine-bundle ###
-###> symfony/mercure-bundle ###
-###< symfony/mercure-bundle ###
+

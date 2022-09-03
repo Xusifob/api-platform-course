@@ -1,0 +1,114 @@
+{% extends '@WebProfiler/Profiler/layout.html.twig' %}
+
+{% block toolbar %}
+    {% set icon %}
+        {{ include('data_collector/elastic.svg') }}
+        <span class="sf-toolbar-value">{{ collector.searches|length|default(0) }}</span>
+        <span class="sf-toolbar-label">search</span>
+
+        <span class="sf-toolbar-value">{{ collector.updates|length|default(0) }}</span>
+        <span class="sf-toolbar-label">updates</span>
+
+    {% endset %}
+
+    {% if(collector.searches) %}
+        {% set text %}
+            {% for search in collector.searches %}
+                <div class="sf-toolbar-info-piece">
+                    {{ search.index }}
+                </div>
+            {% endfor %}
+        {% endset %}
+    {% endif %}
+
+    {{ include('@WebProfiler/Profiler/toolbar_item.html.twig', { 'link': true }) }}
+{% endblock %}
+
+{% block head %}
+    {{ parent() }}
+{% endblock %}
+
+{% block menu %}
+    {# This left-hand menu appears when using the full-screen profiler. #}
+    <span class="label {% if(collector.operationCount == 0) %}disabled{% else %}label-status-success{% endif %}">
+        <span class="icon">
+              {{ include('data_collector/elastic.svg') }}
+        </span>
+        <strong>Elasticsearch</strong>
+        {% if(collector.operationCount) %}
+            <span class="count">
+                    <span>{{ collector.operationCount }}</span>
+            </span>
+        {% endif %}
+    </span>
+{% endblock %}
+
+{% block panel %}
+    <h2>Searches</h2>
+
+    {% if(collector.searches|length) %}
+        {% for search in collector.searches %}
+            <table>
+                <thead>
+                <tr>
+                    <th scope="col" class="key">Key</th>
+                    <th scope="col">Value</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr>
+                    <th>Index</th>
+                    <td>{{ search.index }}</td>
+                </tr>
+                <tr>
+                    <th>Query</th>
+                    <td>
+                        <pre>{{ (search.body|json_encode(128)) }}</pre>
+                    </td>
+                </tr>
+                <tr>
+                    <th>Response</th>
+                    <td>
+                        <pre>{{ (search.response|json_encode(128)) }}</pre>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        {% endfor %}
+    {% else %}
+        <p>No searches found</p>
+    {% endif %}
+
+    <h2>Updates</h2>
+
+    {% if(collector.updates|length) %}
+        {% for update in collector.updates %}
+            <table>
+                <thead>
+                <tr>
+                    <th scope="col" class="key">Key</th>
+                    <th scope="col">Operation</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr>
+                    <th>Index</th>
+                    <td>{{ update.index }}/{{ update.id }}</td>
+                </tr>
+                <tr>
+                    <th>Opération</th>
+                    <td>{{ update.action }}</td>
+                </tr>
+                <tr>
+                    <th>Body</th>
+                    <td>
+                        <pre>{{ (update.body|json_encode(128)) }}</pre>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        {% endfor %}
+    {% else %}
+        <p>No updates found</p>
+    {% endif %}
+{% endblock %}

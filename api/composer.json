@@ -14,6 +14,7 @@
         "doctrine/doctrine-bundle": "^2.1",
         "doctrine/doctrine-migrations-bundle": "^3.0",
         "doctrine/orm": "^2.7",
+        "elasticsearch/elasticsearch": "^8.4",
         "gesdinet/jwt-refresh-token-bundle": "^1.1",
         "guzzlehttp/guzzle": "^7.0",
         "league/flysystem-aws-s3-v3": "^3.2",

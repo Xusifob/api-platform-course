@@ -8,6 +8,7 @@ use App\Entity\Notification;
 use App\Entity\Product;
 use App\Entity\ProductCategory;
 use JetBrains\PhpStorm\NoReturn;
+use Symfony\Bundle\MercureBundle\DataCollector\MercureDataCollector;
 
 class ProductsTest extends ApiTester
 {
@@ -30,6 +31,19 @@ class ProductsTest extends ApiTester
         $this->format = $format;
 
         $data = $this->get("/products");
+        $this->assertResponseIsSuccessful();
+
+        $this->assertGetCollectionCount(11, $data);
+    }
+
+
+    #[NoReturn]
+    public function testSearchProducts(): void
+    {
+        self::populateElasticSearch(Product::class);
+
+        $data = $this->get("products/search");
+
         $this->assertResponseIsSuccessful();
 
         $this->assertGetCollectionCount(11, $data);
@@ -74,6 +88,26 @@ class ProductsTest extends ApiTester
         $this->format = $format;
 
         $data = $this->get("/products", [
+            "archived" => true
+        ]);
+        $this->assertResponseIsSuccessful();
+
+        $this->assertGetCollectionCount(1, $data);
+    }
+
+    /**
+     *
+     * @dataProvider getFormats
+     *
+     **/
+    #[NoReturn]
+    public function testSearchProductsFilterByStatus(string $format): void
+    {
+        self::populateElasticSearch(Product::class);
+
+        $this->format = $format;
+
+        $data = $this->get("/products/search", [
             "archived" => true
         ]);
         $this->assertResponseIsSuccessful();
@@ -163,7 +197,7 @@ class ProductsTest extends ApiTester
         $this->login("admin");
 
         $category = $this->getEntity(ProductCategory::class);
-        $photo = $this->createMediaObject($this->getAdmin(),"path/to/document.pdf","application/pdf");
+        $photo = $this->createMediaObject($this->getAdmin(), "path/to/document.pdf", "application/pdf");
 
         $postData = $this->formatData([
             "name" => "My awesome product",
@@ -181,9 +215,7 @@ class ProductsTest extends ApiTester
 
         self::assertResponseIsUnProcessable();
 
-        $this->assertHasViolations($data,["mainPhoto"],["product.main_photo.type_invalid"]);
-
-
+        $this->assertHasViolations($data, ["mainPhoto"], ["product.main_photo.type_invalid"]);
     }
 
 
@@ -279,6 +311,20 @@ class ProductsTest extends ApiTester
         ]);
 
         $this->assertTrue($notification instanceof Notification);
+
+        $messages = $this->getMercureMessages();
+
+        $this->assertCount(2, $messages);
+
+        $data = $this->getMercureData($messages[0]);
+
+        $this->assertArrayHasKeys(['type', "read", "url", "title", "content"], $data);
+
+        $this->assertTsEquals("type.new_product_sale.title", $data['title'], [], "notifications");
+        $this->assertTsEquals("type.new_product_sale.content", $data['content'], [], "notifications");
+
+        $this->assertEquals(NotificationType::NEW_PRODUCT_SALE->value,$data['type']);
+
     }
 
 

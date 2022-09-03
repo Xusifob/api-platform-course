@@ -1,6 +1,8 @@
 parameters:
     env(AWS_S3_READ_ENDPOINT): null
     env(AWS_S3_WRITE_ENDPOINT): null
+    env(ELASTICSEARCH_HOST): 'http://elasticsearch:9200'
+
 
 services:
     # default configuration for services in *this* file
@@ -34,11 +36,24 @@ services:
             $s3ReadClient: '@s3.read.client'
             $s3WriteClient: '@s3.write.client'
             $bucket: '%env(AWS_S3_BUCKET)%'
-            
+    
     App\Service\MercureTokenGenerator:
         class: App\Service\MercureTokenGenerator
         arguments:
             $factory: '@mercure.hub.default.jwt.factory'
+    
+    App\State\ElasticProvider:
+        class: App\State\ElasticProvider
+        arguments:
+            $collectionExtensions: !tagged api_platform.elasticsearch.request_body_search_extension.collection
+    
+    App\Bridge\Elasticsearch\ElasticService:
+        class: App\Bridge\Elasticsearch\ElasticService
+        arguments:
+            $environment: '%env(APP_ENV)%'
+            $host: '%env(ELASTICSEARCH_HOST)%'
+            $mappingDir: '%kernel.project_dir%/config/elasticsearch/mappings'
+    
     
     s3.read.client:
         class: Aws\S3\S3Client
@@ -60,6 +75,16 @@ services:
     App\OpenApi\AuthDecorator:
         decorates: 'api_platform.openapi.factory'
 
+    ## Filters
+    App\Extension\Elasticsearch\StatusEntityExtension:
+        tags:
+            - { name: "api_platform.elasticsearch.request_body_search_extension.collection" }
+    
+    App\Extension\Elasticsearch\FilterExtension:
+        tags:
+            - { name: "api_platform.elasticsearch.request_body_search_extension.collection" }
+        arguments:
+            $filterLocator: "@api_platform.filter_locator"
 
     ### Entity listeners
     App\Doctrine\EntityListener\UserListener:
@@ -88,3 +113,4 @@ services:
     App\State\MediaObject\MediaObjectProcessor:
         bind:
             $decorated: '@ApiPlatform\Symfony\Messenger\Processor'
+    

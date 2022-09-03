@@ -56,7 +56,7 @@ final class StatusEntityExtension extends AbstractExtension implements QueryColl
 
     private function supports(string $resourceClass, Operation $operation, array $context = []): bool
     {
-        return self::implements($resourceClass, IStatusEntity::class);
+        return is_subclass_of($resourceClass, IStatusEntity::class);
     }
 
 }

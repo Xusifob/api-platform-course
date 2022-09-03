@@ -40,7 +40,8 @@ trait StatusTrait
         $this->status = EntityStatus::ACTIVE;
     }
 
-    #[ApiProperty(readable: false, writable: false)]
+    #[Groups("product:elastic")]
+    #[ApiProperty(writable: false)]
     public function isActive(): bool
     {
         return $this->isStatus(EntityStatus::ACTIVE);
@@ -52,7 +53,8 @@ trait StatusTrait
         return $this->isStatus(EntityStatus::ARCHIVED);
     }
 
-    #[ApiProperty(readable: false, writable: false)]
+    #[Groups("product:elastic")]
+    #[ApiProperty(writable: false)]
     public function isDeleted(): bool
     {
         return $this->isStatus(EntityStatus::DELETED);

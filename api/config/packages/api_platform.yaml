@@ -2,7 +2,7 @@ api_platform:
     title: Hello API Platform
     version: 1.0.0
     mapping:
-        paths: 
+        paths:
             - '%kernel.project_dir%/src/Entity'
     patch_formats:
         json: [ 'application/merge-patch+json' ]
@@ -31,11 +31,10 @@ api_platform:
             page_parameter_name: page
             items_per_page_parameter_name: per_page
     
-    # Mercure integration, remove if unwanted
     mercure: ~
     # Good cache defaults for REST APIs
     defaults:
-        pagination_items_per_page: 3
+        pagination_items_per_page: 30
         pagination_client_items_per_page: true
         pagination_maximum_items_per_page: 100
             

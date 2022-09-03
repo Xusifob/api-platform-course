@@ -71,7 +71,7 @@ final class OwnedEntityExtension extends AbstractExtension implements QueryColle
 
     private function supports(string $resourceClass, Operation $operation, array $context = []): bool
     {
-        return self::implements($resourceClass, IOwnedEntity::class);
+        return is_subclass_of($resourceClass, IOwnedEntity::class);
     }
 
 }

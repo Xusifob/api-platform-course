@@ -37,7 +37,7 @@ final class MediaObjectExtension extends AbstractExtension implements QueryColle
 
     private function supports(string $resourceClass, Operation $operation, array $context = []): bool
     {
-        return self::implements($resourceClass, MediaObject::class);
+        return is_subclass_of($resourceClass, MediaObject::class);
     }
 
 }

@@ -15,8 +15,10 @@ use ApiPlatform\Metadata\Link;
 use ApiPlatform\Metadata\Post;
 use ApiPlatform\Metadata\Put;
 use App\Entity\Trait\StatusTrait;
+use App\Filter\Elasticsearch\StatusEntityFilter as ElasticStatusEntityFilter;
 use App\Filter\StatusEntityFilter;
 use App\Repository\ProductRepository;
+use App\State\ElasticProvider;
 use App\State\Product\ProductProcessor;
 use App\State\Product\ProductProvider;
 use App\Validator\Enum\MediaType;
@@ -42,6 +44,11 @@ use Symfony\Component\Validator\Constraints as Assert;
         new Delete(security: "is_granted('DELETE',object)")
     ],)]
 #[ApiResource(
+    uriTemplate: '/products/search',
+    operations: [new GetCollection(security: "is_granted('PUBLIC_ACCESS')")],
+    provider: ElasticProvider::class
+)]
+#[ApiResource(
     uriTemplate: '/products/{id}',
     operations: [new Get(security: "is_granted('VIEW',object)")],
     provider: ProductProvider::class
@@ -49,14 +56,15 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[ORM\Table(name: "product")]
 #[UniqueEntity(fields: "reference")]
 #[ApiFilter(StatusEntityFilter::class, properties: ['archived'])]
+#[ApiFilter(ElasticStatusEntityFilter::class, properties: ['archived'])]
 #[ApiFilter(RangeFilter::class, properties: ["id"])]
 #[ApiFilter(OrderFilter::class, properties: ["id" => "DESC"])]
-class Product extends Entity implements IStatusEntity, INamedEntity
+class Product extends Entity implements IElasticEntity, IStatusEntity, INamedEntity
 {
 
     use StatusTrait;
 
-    #[Groups(["product:write", "read"])]
+    #[Groups(["product:write", "read", "elastic"])]
     #[ORM\Column(type: 'string', length: 255, nullable: false)]
     #[ApiProperty(schema: [
         'type' => 'string',
@@ -70,7 +78,7 @@ class Product extends Entity implements IStatusEntity, INamedEntity
     public ?string $name = null;
 
 
-    #[Groups(["product:item"])]
+    #[Groups(["product:item", "elastic"])]
     #[ApiProperty(schema: [
         'type' => 'string',
         'example' => 'The description of the product',
@@ -81,7 +89,7 @@ class Product extends Entity implements IStatusEntity, INamedEntity
     public ?string $description = null;
 
 
-    #[Groups(["product:item"])]
+    #[Groups(["product:item", "elastic"])]
     #[ApiProperty(schema: [
         'type' => 'string',
         'example' => 'P123456789',
@@ -96,7 +104,7 @@ class Product extends Entity implements IStatusEntity, INamedEntity
     /**
      * @var Collection<int,ProductCategory>
      */
-    #[Groups(["product"])]
+    #[Groups(["product:read", "product:write"])]
     #[Link(toProperty: "products")]
     #[ApiProperty(schema: [
         'type' => 'array',
@@ -111,7 +119,7 @@ class Product extends Entity implements IStatusEntity, INamedEntity
     private Collection $categories;
 
 
-    #[Groups(["product:write", "read"])]
+    #[Groups(["product:write", "read", "elastic"])]
     #[ORM\Column(type: 'float', nullable: false)]
     #[ApiProperty(schema: [
         'type' => 'float',
@@ -124,7 +132,7 @@ class Product extends Entity implements IStatusEntity, INamedEntity
     public ?float $price = null;
 
 
-    #[Groups(["product"])]
+    #[Groups(["product:read", "product:write", "elastic"])]
     #[ORM\Column(type: 'float', nullable: true)]
     #[ApiProperty(schema: [
         'type' => 'float',
@@ -137,7 +145,7 @@ class Product extends Entity implements IStatusEntity, INamedEntity
     public ?float $discountPercent = null;
 
 
-    #[Groups(["product"])]
+    #[Groups(["product:read", "product:write"])]
     #[ApiProperty(schema: [
         '$ref' => '#/components/schemas/MediaObject'
     ])]
@@ -180,21 +188,21 @@ class Product extends Entity implements IStatusEntity, INamedEntity
 
 
     #[SerializedName("isSale")]
-    #[Groups(["read"])]
+    #[Groups(["read", "elastic"])]
     public function isSale(): bool
     {
         return (bool)$this->discountPercent;
     }
 
 
-    #[Groups(["read"])]
-    public function getSalePrice(): ?int
+    #[Groups(["read", "elastic"])]
+    public function getSalePrice(): ?float
     {
         if (!$this->isSale()) {
             return null;
         }
 
-        return $this->price * $this->discountPercent;
+        return $this->price - ($this->price * $this->discountPercent / 100);
     }
 
 

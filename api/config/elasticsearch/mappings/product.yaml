@@ -1,0 +1,21 @@
+properties:
+    id:
+        type: keyword
+    name:
+        type: text
+    description:
+        type: text
+    reference:
+        type: keyword
+    isSale:
+        type: boolean
+    price:
+        type: float
+    salePrice:
+        type: float
+    discountPercent:
+        type: float
+    active:
+        type: boolean
+    deleted:
+        type: boolean

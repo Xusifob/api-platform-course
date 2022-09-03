@@ -7,18 +7,25 @@ use ApiPlatform\Exception\ResourceClassNotFoundException;
 use ApiPlatform\Metadata\Resource\Factory\ResourceMetadataCollectionFactoryInterface;
 use ApiPlatform\Symfony\Bundle\Test\ApiTestCase;
 use ApiPlatform\Symfony\Bundle\Test\Client;
+use App\Bridge\Elasticsearch\ElasticService;
 use App\Entity\IEntity;
 use App\Entity\MediaObject;
 use App\Entity\User;
-use App\Repository\IRepository;
 use App\Tests\TesterTrait;
 use Exception;
 use Hautelook\AliceBundle\PhpUnit\ReloadDatabaseTrait;
 use JetBrains\PhpStorm\ArrayShape;
+use Symfony\Bundle\MercureBundle\DataCollector\MercureDataCollector;
 use Symfony\Component\HttpClient\Exception\ClientException;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\HttpException;
+use Symfony\Component\HttpKernel\Profiler\Profile;
+use Symfony\Component\Mercure\Update;
+use Symfony\Contracts\HttpClient\Exception\ClientExceptionInterface;
+use Symfony\Contracts\HttpClient\Exception\RedirectionExceptionInterface;
+use Symfony\Contracts\HttpClient\Exception\ServerExceptionInterface;
+use Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
 abstract class ApiTester extends ApiTestCase
@@ -273,6 +280,17 @@ abstract class ApiTester extends ApiTestCase
         }
 
         $this->assertCount(count($expectedMessages), $data[$violationKey]);
+    }
+
+
+    protected function assertTsEquals(
+        string $expectedMessage,
+        string $message,
+        array $params = [],
+        string $domain = "validators"
+    ) {
+        $translation = $this->translator->trans($expectedMessage, $params, $domain);
+        $this->assertEquals($translation, $message);
     }
 
 
@@ -563,6 +581,58 @@ abstract class ApiTester extends ApiTestCase
         $this->em->flush();
 
         return $object;
+    }
+
+
+    public function getProfiler(): Profile
+    {
+        // Check SSE Infos from profiler
+        $profiler = self::getContainer()->get('profiler');
+
+        $token = $this->apiClient->getResponse()->getHeaders(false)['x-debug-token'][0];
+
+        /** @var Profile $profile */
+        return $profiler->loadProfile($token);
+    }
+
+    /**
+     * @return Update[]
+     */
+    public function getMercureMessages(string $hub = "default"): array
+    {
+        $profile = $this->getProfiler();
+
+        /** @var MercureDataCollector $collector */
+        $collector = $profile->getCollector('mercure');
+
+        $hubs = $collector->getHubs();
+
+        return array_map(function (array $message) use ($hub) {
+            return $message['object'];
+        }, $hubs[$hub]['messages']);
+    }
+
+
+    public function getMercureData(Update $message): array
+    {
+        return json_decode($message->getData(), true);
+    }
+
+
+    protected static function populateElasticSearch(string|array $resourceClass = []): void
+    {
+        $elasticService = self::getContainer()->get(ElasticService::class);
+
+        $elasticService->enabled = true;
+
+        if (is_string($resourceClass)) {
+            $resourceClass = [$resourceClass];
+        }
+
+        $elasticService->createIndexes($resourceClass);
+        $elasticService->loadIndexes($resourceClass);
+
+        sleep(1);
     }
 
 

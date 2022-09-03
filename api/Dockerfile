@@ -1,154 +1,76 @@
-# the different stages of this Dockerfile are meant to be built into separate images
-# https://docs.docker.com/develop/develop-images/multistage-build/#stop-at-a-specific-build-stage
-# https://docs.docker.com/compose/compose-file/#target
-
-
-# https://docs.docker.com/engine/reference/builder/#understand-how-arg-and-from-interact
 ARG PHP_VERSION=8.1
-ARG CADDY_VERSION=2
 
-# "php" stage
-FROM php:${PHP_VERSION}-fpm-alpine AS api_platform_php
+FROM php:${PHP_VERSION}-apache-bullseye as api-platform-base
 
-# persistent / runtime deps
-RUN apk add --no-cache \
-		acl \
-		fcgi \
-		file \
-		gettext \
-		git \
-	;
+ENV DEBIAN_FRONTEND noninteractive
 
-ARG APCU_VERSION=5.1.21
-RUN set -eux; \
-	apk add --no-cache --virtual .build-deps \
-		$PHPIZE_DEPS \
-		icu-data-full \
-		icu-dev \
-		libzip-dev \
-		zlib-dev \
-	; \
-	\
-	docker-php-ext-configure zip; \
-	docker-php-ext-install -j$(nproc) \
-		intl \
-		zip \
-	; \
-	pecl install \
-		apcu-${APCU_VERSION} \
-	; \
-	pecl clear-cache; \
-	docker-php-ext-enable \
-		apcu \
-		opcache \
-	; \
-	\
-	runDeps="$( \
-		scanelf --needed --nobanner --format '%n#p' --recursive /usr/local/lib/php/extensions \
-			| tr ',' '\n' \
-			| sort -u \
-			| awk 'system("[ -e /usr/local/lib/" $1 " ]") == 0 { next } { print "so:" $1 }' \
-	)"; \
-	apk add --no-cache --virtual .api-phpexts-rundeps $runDeps; \
-	\
-	apk del .build-deps
+RUN apt-get update --fix-missing
+RUN apt-get install -y curl nano unzip vim  postgresql-client git
+RUN apt-get install -y build-essential libssl-dev zlib1g-dev libpng-dev libjpeg-dev libfreetype6-dev libzip-dev
 
-###> recipes ###
-###> doctrine/doctrine-bundle ###
-RUN apk add --no-cache --virtual .pgsql-deps postgresql-dev; \
-	docker-php-ext-install -j$(nproc) pdo_pgsql; \
-	apk add --no-cache --virtual .pgsql-rundeps so:libpq.so.5; \
-	apk del .pgsql-deps
-###< doctrine/doctrine-bundle ###
-###< recipes ###
+RUN apt-get update \
+        && apt-get install -y \
+                libfreetype6-dev \
+                libpng-dev \
+                libjpeg-dev \
+        && docker-php-ext-configure gd \
+                --with-freetype=/usr/include/ \
+        --with-jpeg=/usr/include/ \
+        && docker-php-ext-install -j$(nproc) \
+                gd \
+        && apt-get purge -y \
+                libfreetype6-dev \
+                libpng-dev \
+                libjpeg-dev
 
-### Imagick
+RUN apt-get update \
+        && apt-get install -y \
+                libicu-dev \
+        && docker-php-ext-install -j$(nproc) \
+                intl \
+        && apt-get purge -y \
+                libicu-dev
+
+RUN apt-get update \
+        && apt-get install -y \
+                libxml2-dev \
+        && docker-php-ext-install -j$(nproc) \
+                xml \
+        && apt-get purge -y \
+                libxml2-dev
+
+RUN apt install -y libcurl3-dev
+RUN docker-php-ext-install pdo_mysql zip opcache
+
+ADD https://github.com/mlocati/docker-php-extension-installer/releases/latest/download/install-php-extensions /usr/local/bin/
+RUN chmod +x /usr/local/bin/install-php-extensions && sync && \
+    install-php-extensions http
+
+RUN a2enmod rewrite ssl headers
+
+RUN php -r "copy('https://getcomposer.org/installer', '/tmp/composer-setup.php');" && php /tmp/composer-setup.php --no-ansi --install-dir=/usr/local/bin --filename=composer && rm -rf /tmp/composer-setup.php
+
 ADD https://github.com/mlocati/docker-php-extension-installer/releases/latest/download/install-php-extensions /usr/local/bin/
 
-RUN chmod uga+x /usr/local/bin/install-php-extensions && sync && \
-    install-php-extensions imagick
+RUN apt-get update && apt-get install -y libpq-dev
+RUN docker-php-ext-configure pgsql -with-pgsql=/usr/local/pgsql
+RUN docker-php-ext-install pdo pdo_pgsql
 
-COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
+RUN apt-get update && apt-get install -y libmagickwand-dev --no-install-recommends && \
+	pecl install imagick && docker-php-ext-enable imagick
 
-RUN ln -s $PHP_INI_DIR/php.ini-production $PHP_INI_DIR/php.ini
-COPY docker/php/conf.d/api-platform.prod.ini $PHP_INI_DIR/conf.d/api-platform.ini
+RUN a2enmod proxy
+RUN a2enmod proxy_http
 
-COPY docker/php/php-fpm.d/zz-docker.conf /usr/local/etc/php-fpm.d/zz-docker.conf
+WORKDIR /var/www/html
 
-VOLUME /var/run/php
+COPY --chown=www-data:www-data . .
+COPY ./docker/php/000-default.conf /etc/apache2/sites-available/000-default.conf
+COPY  ./docker/php/custom.ini /usr/local/etc/php/conf.d/custom.ini
 
-# https://getcomposer.org/doc/03-cli.md#composer-allow-superuser
-ENV COMPOSER_ALLOW_SUPERUSER=1
-ENV PATH="${PATH}:/root/.composer/vendor/bin"
+RUN openssl req -x509 -nodes -days 365 -newkey rsa:2048 -subj "/C=FR/ST=Ile-De-France/L=Paris/O=Api-Platform/OU=IT Department/CN=localhost" -keyout /etc/ssl/private/apache-selfsigned.key -out /etc/ssl/certs/apache-selfsigned.crt
 
-WORKDIR /srv/api
+RUN composer install --dev
+RUN php bin/console assets:install --symlink
 
-# build for production
-ARG APP_ENV=prod
-
-# prevent the reinstallation of vendors at every changes in the source code
-COPY composer.json composer.lock symfony.lock ./
-RUN set -eux; \
-	composer install --prefer-dist --no-dev --no-scripts --no-progress; \
-	composer clear-cache
-
-# copy only specifically what we need
-COPY .env ./
-COPY bin bin/
-COPY config config/
-COPY migrations migrations/
-COPY public public/
-COPY src src/
-COPY templates templates/
-
-RUN set -eux; \
-	mkdir -p var/cache var/log; \
-	composer dump-autoload --classmap-authoritative --no-dev; \
-	composer dump-env prod; \
-	composer run-script --no-dev post-install-cmd; \
-	chmod +x bin/console; sync
-VOLUME /srv/api/var
-
-COPY docker/php/docker-healthcheck.sh /usr/local/bin/docker-healthcheck
-RUN chmod +x /usr/local/bin/docker-healthcheck
-
-HEALTHCHECK --interval=10s --timeout=3s --retries=3 CMD ["docker-healthcheck"]
-
-COPY docker/php/docker-entrypoint.sh /usr/local/bin/docker-entrypoint
-RUN chmod +x /usr/local/bin/docker-entrypoint
-
-ENV SYMFONY_PHPUNIT_VERSION=9
-
-ENTRYPOINT ["docker-entrypoint"]
-CMD ["php-fpm"]
-
-# "caddy" stage
-# depends on the "php" stage above
-FROM caddy:${CADDY_VERSION}-builder-alpine AS api_platform_caddy_builder
-
-# install Mercure and Vulcain modules
-RUN xcaddy build \
-    --with github.com/dunglas/mercure \
-    --with github.com/dunglas/mercure/caddy \
-    --with github.com/dunglas/vulcain \
-    --with github.com/dunglas/vulcain/caddy
-
-# Install nodejs
-ENV ALPINE_MIRROR "http://dl-cdn.alpinelinux.org/alpine"
-RUN echo "${ALPINE_MIRROR}/edge/main" >> /etc/apk/repositories
-RUN apk add --no-cache nodejs-current npm  --repository="http://dl-cdn.alpinelinux.org/alpine/edge/community"
-RUN node --version
-RUN npm install -g yarn
-
-FROM caddy:${CADDY_VERSION} AS api_platform_caddy
-
-WORKDIR /srv/api
-
-RUN mkdir /home/www-data/.aws/
-COPY docker/php/aws_credentials /home/www-data/.aws/credentials
-RUN mkdir /root/.aws/
-COPY docker/php/aws_credentials /root/.aws/credentials
-
-COPY --from=api_platform_caddy_builder /usr/bin/caddy /usr/bin/caddy
-COPY --from=api_platform_php /srv/api/public public/
-COPY docker/caddy/Caddyfile /etc/caddy/Caddyfile
+CMD ["/usr/sbin/apache2ctl","-D", "FOREGROUND"]
