@@ -19,3 +19,6 @@ media_object:
         invalid: This type of document is invalid, please upload another one.
     size:
         invalid: Your file is too heavy.
+
+news:
+    not_found: News not found

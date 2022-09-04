@@ -3,11 +3,8 @@
 namespace App\Entity\Trait;
 
 use ApiPlatform\Metadata\ApiProperty;
-use App\Security\IEntityVoter;
 use Doctrine\ORM\Mapping as ORM;
-
 use Symfony\Bridge\Doctrine\IdGenerator\UuidGenerator;
-
 use Symfony\Component\Serializer\Annotation\Groups;
 
 use function Symfony\Component\String\u;
@@ -30,20 +27,6 @@ trait EntityTrait
     #[ORM\GeneratedValue(strategy: "CUSTOM")]
     #[ORM\CustomIdGenerator(class: UuidGenerator::class)]
     protected $id;
-
-    #[ApiProperty(schema: [
-        "writeable" => false,
-        "type" => "object",
-        "properties" => [
-            "update" => [
-                "type" => "boolean",
-            ],
-            "delete" => [
-                "type" => "boolean",
-            ]
-        ]
-    ])]
-    protected array $rights = [];
 
     public function getId(): ?string
     {
@@ -86,30 +69,6 @@ trait EntityTrait
         }
     }
 
-
-    #[Groups(["read"])]
-    public function getRights(): array
-    {
-        return $this->rights;
-    }
-
-
-    public function setRight(string $key, bool $value): self
-    {
-        $this->rights[$key] = $value;
-
-        return $this;
-    }
-
-
-    #[ApiProperty(readable: false, writable: false)]
-    public function getRightKeys(): array
-    {
-        return [
-            IEntityVoter::UPDATE,
-            IEntityVoter::DELETE,
-        ];
-    }
 
     public function __toString(): string
     {

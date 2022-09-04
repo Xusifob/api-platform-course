@@ -95,7 +95,7 @@ class SerialisationGroupGenerator implements SerializerContextBuilderInterface
     {
         $route = $request->attributes->get("_route");
 
-        $isCollection = preg_match("#get_collection$#", (string)$route);
+        $isCollection = preg_match("#collection$#", (string)$route);
 
         return $isCollection ? "collection" : "item";
     }

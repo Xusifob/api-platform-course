@@ -16,15 +16,4 @@ interface IEntity extends Stringable
      */
     public function getId(): ?string;
 
-
-    public function getRights() : array;
-
-
-    public function setRight(string $key, bool $value) : self;
-
-
-
-    public function getRightKeys() : array;
-
-
 }

@@ -3,6 +3,7 @@
 namespace App\Serializer\Normalizer;
 
 use App\Entity\IEntity;
+use App\Entity\IRightfulEntity;
 use App\Entity\User;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 use Symfony\Component\Security\Core\Authorization\AccessDecisionManagerInterface;
@@ -13,11 +14,12 @@ use Symfony\Component\Serializer\Normalizer\NormalizerAwareInterface;
 use Symfony\Component\Serializer\Normalizer\NormalizerAwareTrait;
 use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 
-class EntityNormalizer implements NormalizerInterface, NormalizerAwareInterface, CacheableSupportsMethodInterface
+class RightfulEntityNormalizer implements NormalizerInterface, NormalizerAwareInterface,
+                                          CacheableSupportsMethodInterface
 {
     use NormalizerAwareTrait;
 
-    private const ALREADY_CALLED = 'APP_ENTITY_NORMALIZER_ALREADY_CALLED';
+    private const ALREADY_CALLED = 'APP_RIGHTFUL_ENTITY_NORMALIZER_ALREADY_CALLED';
 
     public function __construct(
         private readonly AccessDecisionManagerInterface $accessDecisionManager,
@@ -26,7 +28,7 @@ class EntityNormalizer implements NormalizerInterface, NormalizerAwareInterface,
     }
 
     /**
-     * @param IEntity $object
+     * @param IRightfulEntity $object
      * @param string|null $format
      * @throws ExceptionInterface
      */
@@ -39,7 +41,7 @@ class EntityNormalizer implements NormalizerInterface, NormalizerAwareInterface,
         foreach ($object->getRightKeys() as $right) {
             // @Todo here add cache inside redis for example
             $vote = $token instanceof TokenInterface && $this->accessDecisionManager->decide($token, [$right], $object);
-            $object->setRight(strtolower((string) $right), $vote);
+            $object->setRight(strtolower((string)$right), $vote);
         }
 
         return $this->normalizer->normalize($object, $format, $context);
@@ -47,7 +49,7 @@ class EntityNormalizer implements NormalizerInterface, NormalizerAwareInterface,
 
     public function supportsNormalization($data, $format = null, array $context = []): bool
     {
-        if (!$data instanceof IEntity) {
+        if (!$data instanceof IRightfulEntity) {
             return false;
         }
         // Make sure we're not called twice
@@ -55,7 +57,7 @@ class EntityNormalizer implements NormalizerInterface, NormalizerAwareInterface,
     }
 
 
-    private function buildCalledKey(IEntity $entity): string
+    private function buildCalledKey(IRightfulEntity $entity): string
     {
         return sprintf('%s_%s', self::ALREADY_CALLED, $entity->getId());
     }

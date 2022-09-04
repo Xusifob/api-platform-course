@@ -6,12 +6,19 @@ framework:
     trusted_proxies: '%env(TRUSTED_PROXIES)%'
     trusted_hosts: '%env(TRUSTED_HOSTS)%'
     # See https://caddyserver.com/docs/caddyfile/directives/reverse_proxy#headers
-    trusted_headers: ['x-forwarded-for', 'x-forwarded-proto']
+    trusted_headers: [ 'x-forwarded-for', 'x-forwarded-proto' ]
 
     #esi: true
     #fragments: true
     php_errors:
         log: true
+    
+    http_client:
+        scoped_clients:
+            news.api:
+                base_uri: '%env(NEWS_API_ENDPOINT)%'
+                headers:
+                    X-Api-Key: '%env(NEWS_API_KEY)%'
 
 when@test:
     framework:
