@@ -32,17 +32,18 @@ class NewsTest extends ApiTester
         );
     }
 
-
     #[NoReturn]
     public function testGetNewsOnPage10WillReturnAnUpgradeResponse(): void
     {
-        $data = $this->get("/news",[
+        $data = $this->get("/news", [
             'page' => 10
         ]);
         $this->assertResponseStatusCodeSame(Response::HTTP_UPGRADE_REQUIRED);
 
-        $this->assertStringContainsString("You have requested too many results. Developer accounts are limited to a max of 100 results",$data['hydra:description']);
-
+        $this->assertStringContainsString(
+            "You have requested too many results. Developer accounts are limited to a max of 100 results",
+            $data['hydra:description']
+        );
     }
 
 

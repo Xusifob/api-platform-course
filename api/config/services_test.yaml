@@ -1,0 +1,11 @@
+services:
+#    news.response_factory:
+#        class: App\Tests\Http\ResponseFactory\NewsResponseFactory
+#        arguments: 
+#            $apiKey: '%env(NEWS_API_KEY)%'
+#
+#    news.api:
+#        class: Symfony\Component\HttpClient\MockHttpClient
+#        arguments:
+#            $responseFactory: "@news.response_factory"
+#            $baseUri: '%env(NEWS_API_ENDPOINT)%'

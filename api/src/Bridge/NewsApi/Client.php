@@ -5,6 +5,7 @@ namespace App\Bridge\NewsApi;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Contracts\HttpClient\Exception\ClientExceptionInterface;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
+use VCR\VCR;
 
 class Client
 {
@@ -30,16 +31,10 @@ class Client
             return json_decode($response->getContent(), true);
         } catch (ClientExceptionInterface $exception) {
             $data = json_decode($response->getContent(false), true);
-
             throw new HttpException($response->getStatusCode(), $data['message'], $exception);
         }
     }
 
-
-    public function getDummyData(): array
-    {
-        return json_decode(file_get_contents(__DIR__ . "/data.json"), true);
-    }
 
 
 }
