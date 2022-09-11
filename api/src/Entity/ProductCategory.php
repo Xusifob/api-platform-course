@@ -29,13 +29,6 @@ use Symfony\Component\Serializer\Annotation\Groups;
     new Put(security: "is_granted('UPDATE',object)"),
     new Delete(security: "is_granted('DELETE',object)")
 ])]
-#[ApiResource(
-    uriTemplate: '/product_categories/{productCategoryId}/products',
-    operations: [new GetCollection()],
-    uriVariables: [
-        'productCategoryId' => new Link(toProperty: 'products', fromClass: Product::class),
-    ]
-)]
 #[ApiFilter(StatusEntityFilter::class, properties: ['archived'])]
 class ProductCategory extends Entity implements IStatusEntity, INamedEntity
 {

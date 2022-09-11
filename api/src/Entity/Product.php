@@ -11,6 +11,9 @@ use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Delete;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
+use ApiPlatform\Metadata\GraphQl\Mutation;
+use ApiPlatform\Metadata\GraphQl\Query;
+use ApiPlatform\Metadata\GraphQl\QueryCollection;
 use ApiPlatform\Metadata\Link;
 use ApiPlatform\Metadata\Post;
 use ApiPlatform\Metadata\Put;
@@ -53,12 +56,26 @@ use Symfony\Component\Validator\Constraints as Assert;
     operations: [new Get(security: "is_granted('VIEW',object)")],
     provider: ProductProvider::class
 )]
+#[ApiResource(graphQlOperations: [
+    new QueryCollection(security: "is_granted('ROLE_ADMIN')"),
+    new Query(security: "is_granted('VIEW',object)", provider: ProductProvider::class),
+    new Mutation(security: "is_granted('CREATE',object)", name: 'create', processor: ProductProcessor::class),
+])]
+#[ApiResource(
+    uriTemplate: '/product_categories/{productCategoryId}/products',
+    operations: [
+        new GetCollection(),
+    ],
+    uriVariables: [
+        'productCategoryId' => new Link(toProperty: 'categories', fromClass: ProductCategory::class),
+    ]
+)]
+
 #[ORM\Table(name: "product")]
 #[UniqueEntity(fields: "reference")]
 #[ApiFilter(StatusEntityFilter::class, properties: ['archived'])]
 #[ApiFilter(ElasticStatusEntityFilter::class, properties: ['archived'])]
-#[ApiFilter(RangeFilter::class, properties: ["id"])]
-#[ApiFilter(OrderFilter::class, properties: ["id" => "DESC"])]
+#[ApiFilter(OrderFilter::class, properties: ["id" => "DESC", "reference" => "ASC", "name" => "ASC"])]
 class Product extends Entity implements IElasticEntity, IStatusEntity, INamedEntity
 {
 
@@ -161,6 +178,7 @@ class Product extends Entity implements IElasticEntity, IStatusEntity, INamedEnt
         $this->categories = new ArrayCollection();
     }
 
+    #[ApiProperty(security: 'is_granted("VIEW", object)')]
     public function getCategories(): Collection
     {
         return $this->categories;

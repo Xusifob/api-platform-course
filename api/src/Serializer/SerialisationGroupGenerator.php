@@ -55,7 +55,6 @@ class SerialisationGroupGenerator implements SerializerContextBuilderInterface
 
 
     public static function buildGroups(
-        array $groups = [],
         string $process = "unknown",
         string $shortName = "unknown",
         string $operationType = "unknown",
@@ -63,16 +62,19 @@ class SerialisationGroupGenerator implements SerializerContextBuilderInterface
         string $role = "unknown",
     ): array {
         $groups = [
-            "$process",
-            "$shortName",
-            "$shortName:$process",
-            "$shortName:$method",
-            "$shortName:$operationType",
-            "$role:$process",
-            "$role:$shortName",
-            "$role:$shortName:$process",
-            "$role:$shortName:$method",
-            "$role:$shortName:$operationType",
+            "$process", // read or write
+            "$shortName", // user, product, etc.
+            "$method", // get, post, etc.
+            "$operationType", // collection, item, etc.
+            "$role", // role_user, role_admin, etc.
+            "$shortName:$process", // user:read, product:write, etc.
+            "$shortName:$method", // user:get, product:post, etc.
+            "$shortName:$operationType", // user:collection, product:item, etc.
+            "$role:$process", // user:read, admin:write, etc.
+            "$role:$shortName", // role_user:read, role_admin:product, etc.
+            "$role:$shortName:$process", // role_user:user:read, role_admin:product:write, etc.
+            "$role:$shortName:$method", // role_user:user:get, role_admin:product:post, etc.
+            "$role:$shortName:$operationType", // role_user:user:collection, role_admin:product:item, etc.
         ];
 
         return array_filter($groups, function (string $group) {

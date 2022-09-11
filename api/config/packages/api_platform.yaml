@@ -13,6 +13,7 @@ api_platform:
         jsonld: [ 'application/json','application/ld+json' ]
         jsonapi: [ 'application/vnd.api+json' ]
         html: [ 'text/html' ]
+        graphql: ['application/graphql']
     
     error_formats:
         jsonld: [ 'application/ld+json' ]

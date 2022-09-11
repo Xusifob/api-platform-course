@@ -20,9 +20,6 @@ services:
             - '../src/Kernel.php'
             - '../src/Tests/'
 
-    # add more service definitions when explicit configuration is needed
-    # please note that last definitions always *replace* previous ones
-    
     App\Serializer\SerialisationGroupGenerator:
         decorates: 'api_platform.serializer.context_builder'
         arguments:
@@ -72,6 +69,9 @@ services:
                 use_path_style_endpoint: true
     
     ### Documentation
+    App\OpenApi\OpenApiDecorator:
+        decorates: 'api_platform.openapi.factory'
+        
     App\OpenApi\AuthDecorator:
         decorates: 'api_platform.openapi.factory'
 

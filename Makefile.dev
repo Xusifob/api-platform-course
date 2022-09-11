@@ -38,6 +38,9 @@ run-command: ## [Development] Run a command inside docker
 make-entity:
 	make run-command 'make:entity'
 
+export-api:
+	make run-command 'api:openapi:export'
+
 rector-dry:
 	docker-compose run --rm php vendor/bin/rector process --dry-run
 
