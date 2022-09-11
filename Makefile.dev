@@ -21,13 +21,13 @@ migration-sync:
 
 
 update-schema: ## [Development] Updates the SQL schema
-	make run-command='doctrine:schema:update --dump-sql --force'
+	make run-command command='doctrine:schema:update --dump-sql --force'
 
 database-create: ## [Development] Updates the SQL schema
-	make run-command='doctrine:database:create'
+	make run-command command='doctrine:database:create'
 
 load-fixtures: ## [Development] Loads fixtures into the database
-	make run-command='hautelook:fixtures:load --no-interaction'
+	make run-command command='hautelook:fixtures:load --no-interaction'
 
 clear-cache: ## [Development] Clears cache
 	make run-command command='cache:clear'
@@ -36,10 +36,10 @@ run-command: ## [Development] Run a command inside docker
 	docker-compose run --rm php php bin/console ${command}
 
 make-entity:
-	make run-command 'make:entity'
+	make run-command command='make:entity'
 
 export-api:
-	make run-command 'api:openapi:export'
+	make run-command command='api:openapi:export -o api.json'
 
 rector-dry:
 	docker-compose run --rm php vendor/bin/rector process --dry-run

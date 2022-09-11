@@ -3,9 +3,14 @@ name: CI
 on:
   push:
     branches:
-      - main
+      - "*"
   pull_request: ~
   workflow_dispatch: ~
+
+concurrency:
+  group: ci-phpunit-${{ github.ref }}-1
+  cancel-in-progress: true
+
 
 jobs:
   tests:
@@ -14,28 +19,16 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
+        
       - name: Pull images
         run: docker-compose pull --ignore-pull-failures || true
+        
       - name: Start services
         run: docker-compose up --build -d
-      - name: Wait for services
-        run: |
-          while status="$(docker inspect --format="{{if .Config.Healthcheck}}{{print .State.Health.Status}}{{end}}" "$(docker-compose ps -q php)")"; do
-            case $status in
-              starting) sleep 1;;
-              healthy) exit 0;;
-              unhealthy)
-                docker-compose ps
-                docker-compose logs
-                exit 1
-              ;;
-            esac
-          done
-          exit 1
-      - name: Check HTTP reachability
-        run: curl -v -o /dev/null http://localhost
+        
       - name: Check HTTPS reachability
         run: curl  -vk -o /dev/null https://localhost
+        
       - name: Create test database
         run: |
           docker-compose exec -T php bin/console -e test doctrine:database:create
