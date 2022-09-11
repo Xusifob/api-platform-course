@@ -17,7 +17,7 @@ clear-test-cache:
 	make run-test-command command='cache:clear'
 
 phpunit: ## [Development] Run a command inside docker
-	docker-compose run --rm php bin/phpunit --testdox
+	docker-compose exec php bin/phpunit --testdox
 
 phpunit-now: ## [Development] Run a command inside docker
 	docker-compose exec php bin/phpunit --testdox --group=now
