@@ -28,9 +28,9 @@ class Client
         ]);
 
         try {
-            return json_decode($response->getContent(), true);
+            return json_decode($response->getContent(), true, 512, JSON_THROW_ON_ERROR);
         } catch (ClientExceptionInterface $exception) {
-            $data = json_decode($response->getContent(false), true);
+            $data = json_decode($response->getContent(false), true, 512, JSON_THROW_ON_ERROR);
             throw new HttpException($response->getStatusCode(), $data['message'], $exception);
         }
     }

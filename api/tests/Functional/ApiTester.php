@@ -106,7 +106,6 @@ abstract class ApiTester extends ApiTestCase
 
     protected function graphQL(string $query): array
     {
-
         $this->format = self::FORMAT_GRAPHQL;
 
         return $this->post('/graphql', [
@@ -266,8 +265,12 @@ abstract class ApiTester extends ApiTestCase
      * @param array $expectedMessages
      * @return void
      */
-    public function assertHasViolations(array $data, array $expectedPropertyPaths, array $expectedMessages): void
-    {
+    public function assertHasViolations(
+        array $data,
+        array $expectedPropertyPaths,
+        array $expectedMessages,
+        array $expectedParameters = []
+    ): void {
         $this->assertResponseIsUnprocessable();
 
         $violationKey = $this->getViolationKey();
@@ -284,8 +287,8 @@ abstract class ApiTester extends ApiTestCase
             $this->assertContains($expectedPropertyPath, $propertyPaths);
         }
 
-        foreach ($expectedMessages as $expectedMessage) {
-            $translation = $this->translator->trans($expectedMessage, [], "validators");
+        foreach ($expectedMessages as $key => $expectedMessage) {
+            $translation = $this->translator->trans($expectedMessage, $expectedParameters[$key] ?? [], "validators");
             $this->assertContains($translation, $messages);
             $this->assertNotContains($expectedMessage, $messages);
         }

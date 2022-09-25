@@ -1,6 +1,6 @@
 product:
     price:
-        min: Your price must be higher than {{ limit }}
+        not_in_range: Your price must be higher than {{ min }} and lower than {{ max }}
         not_null: Please set a price
     description:
         not_blank: Please write a description
@@ -12,7 +12,8 @@ product:
         not_null: Please choose a category
     main_photo:
         type_invalid: Please select a photo
-
+    discount_percent:
+        invalid: Please enter a discount lower than {{ maxValue }}
 
 media_object:
     mime_type:

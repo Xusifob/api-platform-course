@@ -60,14 +60,14 @@ use Vich\UploaderBundle\Mapping\Annotation as Vich;
 class MediaObject extends Entity implements IOwnedEntity
 {
 
-    public const MIME_TYPES = [
+    final public const MIME_TYPES = [
         'image/png',
         'image/jpeg',
         'iamge/png',
         'application/pdf'
     ];
 
-    public const THUMBNAIL_SIZES = [null, "50x50", "200x*"];
+    final public const THUMBNAIL_SIZES = [null, "50x50", "200x*"];
 
     use OwnedTrait;
 

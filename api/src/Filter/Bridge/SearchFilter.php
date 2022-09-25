@@ -10,7 +10,7 @@ class SearchFilter implements FilterInterface
 
     public function getDescription(string $resourceClass): array
     {
-        $description["search"] = [
+        return ["search" => [
             'property' => "search",
             'type' => Type::BUILTIN_TYPE_STRING,
             'required' => false,
@@ -19,10 +19,7 @@ class SearchFilter implements FilterInterface
                 'example' => "My query",
                 'allowEmptyValue' => true,
             ],
-        ];
-
-
-        return $description;
+        ]];
     }
 
 }

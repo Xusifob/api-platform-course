@@ -2,6 +2,7 @@
 
 namespace App\Bridge\NewsApi\Entity;
 
+use Serializable;
 use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\ApiProperty;
 use ApiPlatform\Metadata\ApiResource;
@@ -31,7 +32,7 @@ use Symfony\Component\Serializer\Annotation\Groups;
         // ),
     ],)]
 #[ApiFilter(SearchFilter::class)]
-class News implements IEntity, \Serializable
+class News implements IEntity, Serializable
 {
 
     use EntityTrait;
@@ -137,7 +138,7 @@ class News implements IEntity, \Serializable
 
     public function unserialize(string $data): array
     {
-        return json_decode($data, true);
+        return json_decode($data, true, 512, JSON_THROW_ON_ERROR);
     }
 
     public function __serialize(): array

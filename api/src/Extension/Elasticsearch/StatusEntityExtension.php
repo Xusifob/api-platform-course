@@ -23,7 +23,7 @@ class StatusEntityExtension extends AbstractExtension implements RequestBodySear
             return $requestBody;
         }
 
-        $requestBody['query']["bool"]["must_not"] = $requestBody['query']["bool"]["must_not"] ?? [];
+        $requestBody['query']["bool"]["must_not"] ??= [];
 
         $requestBody['query']["bool"]["must_not"][] = [
             "term" => [

@@ -210,6 +210,50 @@ class ProductsTest extends ApiTester
         );
     }
 
+
+    /**
+     *
+     * @dataProvider getFormats
+     *
+     **/
+    #[NoReturn]
+    public function testCreateProductInvalidProductDiscount(string $format): void
+    {
+        $category = $this->getEntity(ProductCategory::class);
+
+        $this->login("admin");
+
+        $this->format = $format;
+
+        $postData = $this->formatData([
+            "name" => "My awesome product",
+            "description" => "My description",
+            "price" => 45,
+            'discountPercent' => 30,
+            "reference" => Product::generateReference()
+        ], [
+            "categories" => [
+                $this->getEntityUri($category)
+            ]
+        ]);
+
+        $data = $this->post("/products", $postData);
+
+        $this->assertResponseIsUnProcessable();
+
+        $this->assertHasViolations(
+            $data,
+            ['discountPercent'],
+            [
+                "product.discount_percent.invalid"
+            ], [
+                [
+                    "{{ maxValue }}" => 25
+                ]
+            ]
+        );
+    }
+
     /**
      *
      **/
@@ -405,6 +449,14 @@ class ProductsTest extends ApiTester
   }
 }"
         );
+
+
+        $this->assertResponseStatusCodeSame(Response::HTTP_OK);
+
+        $this->assertCount(11,$data['data']['products']['edges']);
+        $this->assertArrayHasKeys(['id','name','reference'],$data['data']['products']['edges'][0]['node']);
+
+
     }
 
     public function testGraphQlGetItem(): void

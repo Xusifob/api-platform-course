@@ -37,8 +37,8 @@ class ElasticProvider implements ProviderInterface
             $body = $collectionExtension->applyToCollection($body, $resourceClass, $operation, $context);
         }
 
-        $limit = $body['size'] = $body['size'] ?? $this->pagination->getLimit($operation, $context);
-        $body['from'] = $body['from'] ?? $this->pagination->getOffset($operation, $context);
+        $limit = $body['size'] ??= $this->pagination->getLimit($operation, $context);
+        $body['from'] ??= $this->pagination->getOffset($operation, $context);
 
         $page = $this->pagination->getPage($context);
 

@@ -17,9 +17,9 @@ class ElasticCollector extends AbstractDataCollector
     }
 
 
-    public const COLLECT_SEARCH = "searches";
+    final public const COLLECT_SEARCH = "searches";
 
-    public const COLLECT_UPDATES = "updates";
+    final public const COLLECT_UPDATES = "updates";
 
     public function collect(Request $request, Response $response, Throwable $exception = null)
     {
@@ -34,26 +34,17 @@ class ElasticCollector extends AbstractDataCollector
         $this->data = [];
     }
 
-    /**
-     * @return array
-     */
     public function getSearches(): array
     {
         return $this->data[self::COLLECT_SEARCH] ?? [];
     }
 
-    /**
-     * @return array
-     */
     public function getUpdates(): array
     {
         return $this->data[self::COLLECT_UPDATES] ?? [];
     }
 
 
-    /**
-     * @return int
-     */
     public function getOperationCount(): int
     {
         return (count($this->getUpdates())) + count($this->getSearches());

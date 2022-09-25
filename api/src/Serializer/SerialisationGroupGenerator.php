@@ -77,9 +77,7 @@ class SerialisationGroupGenerator implements SerializerContextBuilderInterface
             "$role:$shortName:$operationType", // role_user:user:collection, role_admin:product:item, etc.
         ];
 
-        return array_filter($groups, function (string $group) {
-            return !str_contains($group, "unknown");
-        });
+        return array_filter($groups, fn(string $group) => !str_contains($group, "unknown"));
     }
 
 

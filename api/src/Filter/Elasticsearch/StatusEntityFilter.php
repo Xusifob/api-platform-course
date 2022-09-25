@@ -55,7 +55,7 @@ class StatusEntityFilter implements FilterInterface
             return $clauseBody;
         }
 
-        $clauseBody['query']["bool"]["must"] = $clauseBody['query']["bool"]["must"] ?? [];
+        $clauseBody['query']["bool"]["must"] ??= [];
 
         $clauseBody['query']["bool"]["must"][] = [
             "term" => [

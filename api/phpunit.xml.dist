@@ -7,7 +7,7 @@
          colors="true"
          bootstrap="tests/bootstrap.php"
          convertDeprecationsToExceptions="false"
-         processIsolation="true"
+         processIsolation="false"
 
 >
 

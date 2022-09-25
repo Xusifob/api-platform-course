@@ -25,6 +25,7 @@ use App\State\ElasticProvider;
 use App\State\Product\ProductProcessor;
 use App\State\Product\ProductProvider;
 use App\Validator\Enum\MediaType;
+use App\Validator\IsDiscountValid;
 use App\Validator\IsMedia;
 use App\Validator\IsReference;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -70,12 +71,12 @@ use Symfony\Component\Validator\Constraints as Assert;
         'productCategoryId' => new Link(toProperty: 'categories', fromClass: ProductCategory::class),
     ]
 )]
-
 #[ORM\Table(name: "product")]
 #[UniqueEntity(fields: "reference")]
 #[ApiFilter(StatusEntityFilter::class, properties: ['archived'])]
 #[ApiFilter(ElasticStatusEntityFilter::class, properties: ['archived'])]
 #[ApiFilter(OrderFilter::class, properties: ["id" => "DESC", "reference" => "ASC", "name" => "ASC"])]
+#[IsDiscountValid(message: "product.discount_percent.invalid")]
 class Product extends Entity implements IElasticEntity, IStatusEntity, INamedEntity
 {
 
@@ -145,11 +146,11 @@ class Product extends Entity implements IElasticEntity, IStatusEntity, INamedEnt
         'required' => true
     ], iris: "https://schema.org/price")]
     #[Assert\NotNull(message: "product.price.not_null")]
-    #[Assert\Range(minMessage: "product.price.min", min: 0)]
+    #[Assert\Range(notInRangeMessage: "product.price.not_in_range", min: 0, max: 10_000_000)]
     public ?float $price = null;
 
 
-    #[Groups(["product:read", "product:write", "elastic"])]
+    #[Groups(["product:write", "read", "elastic"])]
     #[ORM\Column(type: 'float', nullable: true)]
     #[ApiProperty(schema: [
         'type' => 'float',

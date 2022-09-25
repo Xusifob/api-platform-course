@@ -29,7 +29,7 @@ class FilterExtension implements RequestBodySearchCollectionExtensionInterface
             return $requestBody;
         }
 
-        $context['filters'] = $context['filters'] ?? [];
+        $context['filters'] ??= [];
         $requestBody = [];
 
         foreach ($resourceFilters as $filterId) {

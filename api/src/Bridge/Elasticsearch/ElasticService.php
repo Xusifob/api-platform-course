@@ -2,6 +2,7 @@
 
 namespace App\Bridge\Elasticsearch;
 
+use Exception;
 use ApiPlatform\Metadata\Resource\Factory\ResourceMetadataCollectionFactoryInterface;
 use ApiPlatform\Metadata\Resource\Factory\ResourceNameCollectionFactoryInterface;
 use ApiPlatform\Metadata\Resource\ResourceNameCollection;
@@ -57,7 +58,7 @@ class ElasticService
 
     public function getElasticResources(array $resources = []): array
     {
-        if (!$resources) {
+        if ($resources === []) {
             $resources = $this->resourceMetadataCollectionFactory->create();
         }
 
@@ -67,9 +68,7 @@ class ElasticService
     public function filterResourceClasses(iterable $array): array
     {
         return array_values(
-            array_filter((array)$array, function ($class) {
-                return is_subclass_of($class, IElasticEntity::class);
-            })
+            array_filter((array)$array, fn($class) => is_subclass_of($class, IElasticEntity::class))
         );
     }
 
@@ -310,7 +309,7 @@ class ElasticService
         $file = "$this->mappingDir/$index.yaml";
 
         if (!file_exists($file)) {
-            throw new \Exception("The mapping file $file does not exist, please create it");
+            throw new Exception("The mapping file $file does not exist, please create it");
         }
 
         return Yaml::parseFile($file);
@@ -319,7 +318,7 @@ class ElasticService
     private function getResourceClass(IElasticEntity|string $item): string
     {
         if ($item instanceof IElasticEntity) {
-            $item = get_class($item);
+            $item = $item::class;
         }
 
         return $item;
@@ -328,7 +327,7 @@ class ElasticService
 
     private function collect(string $operation, array $data,?string $id = null): string
     {
-        $id = $id ?? uniqid();
+        $id ??= uniqid();
 
         if (!in_array($this->environment, ["dev", "test"])) {
             return $id;
@@ -339,17 +338,11 @@ class ElasticService
         return $id;
     }
 
-    /**
-     * @return array
-     */
     public function getSearches(): array
     {
         return $this->searches;
     }
 
-    /**
-     * @return array
-     */
     public function getUpdates(): array
     {
         return $this->updates;
