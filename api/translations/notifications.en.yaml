@@ -3,7 +3,7 @@ type:
         title: You have a new order
         content: Your new order has been confirmed by our services
     welcome:
-        title: Welcome to our app
+        title: Welcome {{ owner }} to our app
         content: Click here to check all features
     new_product_sale:
         title: A new product is in sale

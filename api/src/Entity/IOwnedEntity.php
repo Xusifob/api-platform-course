@@ -11,7 +11,7 @@ interface IOwnedEntity extends IEntity
 {
 
 
-    public function isOwnedBy(User $user): bool;
+    public function isOwnedBy(?User $user): bool;
 
 
 }

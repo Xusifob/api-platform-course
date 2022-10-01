@@ -537,9 +537,9 @@ abstract class ApiTester extends ApiTestCase
     {
         if ($username instanceof User) {
             $username = $username->email;
+        } else {
+            $username = $this->resolveUsername($username);
         }
-
-        $username = $this->resolveUsername($username);
 
         $data = $this->post("login", [
             "email" => $username,

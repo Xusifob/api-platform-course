@@ -61,9 +61,7 @@ final class OwnedEntityExtension extends AbstractExtension implements QueryColle
         }
 
         $rootAlias = $queryBuilder->getRootAliases()[0];
-
         $ownerParameter = $queryNameGenerator->generateParameterName("owner");
-
         $queryBuilder->andWhere("$rootAlias.owner = :$ownerParameter");
         $queryBuilder->setParameter($ownerParameter, $user->getId());
     }

@@ -2,14 +2,12 @@
 
 namespace App\Entity;
 
-use ApiPlatform\Api\UrlGeneratorInterface;
 use ApiPlatform\Metadata\ApiProperty;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Put;
 use App\Entity\Enum\NotificationType;
-use App\Entity\Enum\UserRole;
 use App\Entity\Trait\MercureTrait;
 use App\Entity\Trait\OwnedTrait;
 use Doctrine\ORM\Mapping as ORM;
@@ -18,9 +16,15 @@ use Symfony\Component\Serializer\Annotation\Groups;
 #[ORM\Entity()]
 #[ApiResource(
     operations: [
-        new GetCollection(),
-        new Get(),
-        new Put()
+        new GetCollection(
+            security: "is_granted('ROLE_CUSTOMER')",
+        ),
+        new Get(
+            security: "is_granted('VIEW',object)",
+        ),
+        new Put(
+            security: "is_granted('UPDATE',object)",
+        )
     ],
     mercure: 'object.getMercureOptions()',
 )]

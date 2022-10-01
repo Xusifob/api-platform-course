@@ -35,11 +35,17 @@ clear-cache: ## [Development] Clears cache
 run-command: ## [Development] Run a command inside docker
 	docker-compose run --rm php php bin/console ${command}
 
+make-user:
+	make run-command command='make:user'
+
 make-entity:
 	make run-command command='make:entity'
 
 export-api:
 	make run-command command='api:openapi:export -o api.json'
+
+jwt-generate-keys:
+	make run-command command='lexik:jwt:generate-keypair'
 
 rector-dry:
 	docker-compose run --rm php vendor/bin/rector process --dry-run

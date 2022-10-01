@@ -18,8 +18,12 @@ trait OwnedTrait
     #[ORM\JoinColumn(referencedColumnName: 'id', nullable: false)]
     public ?User $owner = null;
 
-    public function isOwnedBy(User $user): bool
+    public function isOwnedBy(?User $user): bool
     {
+        if(null === $user) {
+            return false;
+        }
+
         return $this->owner === $user;
     }
 

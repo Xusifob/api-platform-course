@@ -31,8 +31,12 @@ class NotificationNormalizer implements NormalizerInterface, NormalizerAwareInte
 
         $type = strtolower($object->type->value);
 
-        $object->title = $this->translator->trans("type.$type.title", [], "notifications");
-        $object->content = $this->translator->trans("type.$type.content", [], "notifications");
+        $object->title = $this->translator->trans("type.$type.title", [
+            "{{ owner }}" => $object->owner->getFullName()
+        ], "notifications");
+        $object->content = $this->translator->trans("type.$type.content", [
+            "{{ owner }}" => $object->owner->getFullName()
+        ], "notifications");
 
         return $this->normalizer->normalize($object, $format, $context);
     }
