@@ -8,17 +8,17 @@ use ApiPlatform\Doctrine\Orm\Util\QueryNameGeneratorInterface;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use App\Entity\User;
-use App\Extension\OwnedEntityExtension;
-use App\Extension\StatusEntityExtension;
+use App\Extension\PrivateOwnedEntityExtension;
 use App\Tests\Shared\Fixtures\Dummy;
 use App\Tests\Shared\Fixtures\DummyOwnedEntity;
+use App\Tests\Shared\Fixtures\DummyPublicOwnedEntity;
 use Doctrine\ORM\QueryBuilder;
 use PHPUnit\Framework\TestCase;
 use Prophecy\PhpUnit\ProphecyTrait;
 use Symfony\Component\Security\Core\Security;
 
 
-class OwnedExtensionTest extends TestCase
+class PrivateOwnedExtensionTest extends TestCase
 {
 
     use ProphecyTrait;
@@ -29,7 +29,22 @@ class OwnedExtensionTest extends TestCase
 
         [$securityProphecy, $queryBuilderProphecy, $queryNameGeneratorProphecy] = $this->getValidProphecies();
 
-        $filterExtensionTest = new OwnedEntityExtension($securityProphecy->reveal());
+        $filterExtensionTest = new PrivateOwnedEntityExtension($securityProphecy->reveal());
+        $filterExtensionTest->applyToCollection(
+            $queryBuilderProphecy->reveal(),
+            $queryNameGeneratorProphecy->reveal(),
+            DummyOwnedEntity::class,
+            $operation
+        );
+    }
+
+    public function testApplyToCollectionWithLoggedOutUser(): void
+    {
+        $operation = new GetCollection();
+
+        [$securityProphecy, $queryBuilderProphecy, $queryNameGeneratorProphecy] = $this->getLoggedOutProphecies();
+
+        $filterExtensionTest = new PrivateOwnedEntityExtension($securityProphecy->reveal());
         $filterExtensionTest->applyToCollection(
             $queryBuilderProphecy->reveal(),
             $queryNameGeneratorProphecy->reveal(),
@@ -44,11 +59,27 @@ class OwnedExtensionTest extends TestCase
 
         [$securityProphecy, $queryBuilderProphecy, $queryNameGeneratorProphecy] = $this->getInvalidProphecies();
 
-        $filterExtensionTest = new OwnedEntityExtension($securityProphecy->reveal());
+        $filterExtensionTest = new PrivateOwnedEntityExtension($securityProphecy->reveal());
         $filterExtensionTest->applyToCollection(
             $queryBuilderProphecy->reveal(),
             $queryNameGeneratorProphecy->reveal(),
             Dummy::class,
+            $operation
+        );
+    }
+
+
+    public function testApplyToCollectionWithPublicOwnedEntity(): void
+    {
+        $operation = new GetCollection();
+
+        [$securityProphecy, $queryBuilderProphecy, $queryNameGeneratorProphecy] = $this->getInvalidProphecies();
+
+        $filterExtensionTest = new PrivateOwnedEntityExtension($securityProphecy->reveal());
+        $filterExtensionTest->applyToCollection(
+            $queryBuilderProphecy->reveal(),
+            $queryNameGeneratorProphecy->reveal(),
+            DummyPublicOwnedEntity::class,
             $operation
         );
     }
@@ -59,7 +90,7 @@ class OwnedExtensionTest extends TestCase
 
         [$securityProphecy, $queryBuilderProphecy, $queryNameGeneratorProphecy] = $this->getValidProphecies();
 
-        $filterExtensionTest = new OwnedEntityExtension($securityProphecy->reveal());
+        $filterExtensionTest = new PrivateOwnedEntityExtension($securityProphecy->reveal());
         $filterExtensionTest->applyToItem(
             $queryBuilderProphecy->reveal(),
             $queryNameGeneratorProphecy->reveal(),
@@ -73,9 +104,9 @@ class OwnedExtensionTest extends TestCase
     {
         $operation = new Get();
 
-        [$queryBuilderProphecy, $queryNameGeneratorProphecy] = $this->getInvalidProphecies();
+        [$securityProphecy, $queryBuilderProphecy, $queryNameGeneratorProphecy] = $this->getInvalidProphecies();
 
-        $filterExtensionTest = new StatusEntityExtension();
+        $filterExtensionTest = new PrivateOwnedEntityExtension($securityProphecy->reveal());
         $filterExtensionTest->applyToItem(
             $queryBuilderProphecy->reveal(),
             $queryNameGeneratorProphecy->reveal(),
@@ -109,6 +140,22 @@ class OwnedExtensionTest extends TestCase
         return [$securityProphecy, $queryBuilderProphecy, $queryNameGeneratorProphecy];
     }
 
+
+    private function getLoggedOutProphecies(): array
+    {
+        $securityProphecy = $this->prophesize(Security::class);
+        $securityProphecy->getUser()->willReturn(null);
+
+        $queryBuilderProphecy = $this->prophesize(QueryBuilder::class);
+        $queryNameGeneratorProphecy = $this->prophesize(QueryNameGeneratorInterface::class);
+        $parameterName = "owner";
+
+        $queryBuilderProphecy->getRootAliases()->willReturn([0 => "a"])->shouldBeCalledOnce();
+        $queryBuilderProphecy->andWhere("1 = 2")->shouldBeCalledOnce();
+
+        return [$securityProphecy, $queryBuilderProphecy, $queryNameGeneratorProphecy];
+    }
+
     private function getInvalidProphecies(): array
     {
         $user = $this->prophesize(User::class);
@@ -129,7 +176,7 @@ class OwnedExtensionTest extends TestCase
             $parameterName
         )->shouldNotBeCalled();
 
-        return [$securityProphecy,$queryBuilderProphecy, $queryNameGeneratorProphecy];
+        return [$securityProphecy, $queryBuilderProphecy, $queryNameGeneratorProphecy];
     }
 
 

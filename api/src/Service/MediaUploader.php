@@ -51,7 +51,7 @@ class MediaUploader
     }
 
 
-    public function getS3SignedUrl(MediaObject $object, int $expire = 60 * 60 * 4): string
+    public function getPublicUrl(MediaObject $object, int $expire = 60 * 60 * 4): string
     {
         return $this->cache->get($this->getCacheKey($object), function (ItemInterface $item) use ($expire, $object) {
             if ($item->isHit()) {
@@ -71,23 +71,32 @@ class MediaUploader
     }
 
 
-    public function upload(MediaObject $object, string $file): void
+    public function upload(MediaObject $object, string $localFilePath): void
     {
-        $this->s3WriteClient->upload($object->bucket, $object->filePath, file_get_contents($file), "private", [
+        $this->s3WriteClient->upload($object->bucket, $object->filePath, file_get_contents($localFilePath), "private", [
             'Metadata' => [
                 "contentType" => $object->mimeType
             ]
         ]);
     }
 
-    public function getFileContent(string $key): Stream
+    public function getFileContent(MediaObject $object): Stream
     {
         $file = $this->s3WriteClient->getObject([
-            'Bucket' => $this->bucket,
-            'Key' => $key,
+            'Bucket' => $object->bucket,
+            'Key' => $object->filePath,
         ]);
 
         return $file['Body'];
+    }
+
+
+    public function delete(MediaObject $object): void
+    {
+        $this->s3WriteClient->deleteObject([
+            'Bucket' => $object->bucket,
+            'Key' => $object->filePath,
+        ]);
     }
 
 

@@ -14,4 +14,12 @@ class NotificationVoter extends IOwnerVoter
         return Notification::class;
     }
 
+    public function getSupportedAttributes(): array
+    {
+        return [
+            self::UPDATE => "canUpdate",
+            self::VIEW => "canView",
+        ];
+    }
+
 }

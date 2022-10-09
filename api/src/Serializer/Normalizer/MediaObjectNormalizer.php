@@ -34,7 +34,7 @@ final class MediaObjectNormalizer implements NormalizerInterface, NormalizerAwar
     ): array|string|int|float|bool|ArrayObject|null {
         $context[self::buildCalledKey($object)] = true;
 
-        $object->previewUrl = $this->uploader->getS3SignedUrl($object);
+        $object->previewUrl = $this->uploader->getPublicUrl($object);
 
         return $this->normalizer->normalize($object, $format, $context);
     }

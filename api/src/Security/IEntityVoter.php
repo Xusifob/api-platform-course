@@ -6,6 +6,7 @@ use App\Entity\IEntity;
 use App\Entity\Product;
 use App\Entity\User;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 use Symfony\Component\Security\Core\Authorization\Voter\Voter;
 
 abstract class IEntityVoter extends Voter
@@ -32,11 +33,27 @@ abstract class IEntityVoter extends Voter
 
     abstract protected function getSupportedClass(): string;
 
+
+    protected function voteOnAttribute(string $attribute, mixed $subject, TokenInterface $token): bool
+    {
+        /** @var User|null $user */
+        $user = $token->getUser();
+
+        $method = $this->getSupportedAttribute($attribute);
+
+        return $this->$method($subject, $user);
+    }
+
     protected function supports(string $attribute, mixed $subject): bool
     {
         if (!$this->supportsAttribute($attribute)) {
             return false;
         }
+
+        if(null === $subject) {
+            dump(debug_backtrace(2));
+        }
+
         return $this->supportsEntity($subject);
     }
 
@@ -54,7 +71,15 @@ abstract class IEntityVoter extends Voter
 
     public function supportsAttribute(string $attribute): bool
     {
-        return in_array($attribute, $this->getSupportedAttributes());
+        return in_array($attribute, array_keys($this->getSupportedAttributes()));
+    }
+
+
+    public function getSupportedAttribute(string $attribute): string
+    {
+        $attributes = $this->getSupportedAttributes();
+
+        return $attributes[$attribute];
     }
 
 

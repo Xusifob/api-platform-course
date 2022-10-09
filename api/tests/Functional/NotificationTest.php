@@ -109,6 +109,5 @@ class NotificationTest extends ApiTester
         $this->assertFalse($item['read']);
     }
 
-
 }
 

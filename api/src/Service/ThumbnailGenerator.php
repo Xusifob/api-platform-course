@@ -31,16 +31,14 @@ class ThumbnailGenerator
 
     public function generateThumbnails(MediaObject $object): void
     {
-        $file = $this->uploader->getFileContent($object->filePath);
+        $file = $this->uploader->getFileContent($object);
 
         $tmp = tempnam(sys_get_temp_dir(), 'thumb');
         file_put_contents($tmp, $file);
 
         foreach ($object::THUMBNAIL_SIZES as $size) {
-            if ($size) {
-                $file = $this->generateThumbnail($object, $size, $tmp);
-                $this->saveThumbnail($object, $size, $file);
-            }
+            $file = $this->generateThumbnail($object, $size, $tmp);
+            $this->saveThumbnail($object, $size, $file);
         }
 
         $this->em->flush();

@@ -12,4 +12,4 @@ vich_uploader:
             namer: Vich\UploaderBundle\Naming\UniqidNamer
             # specify a directory namer service for this entity, null default
             delete_on_remove: true  # determine whether to delete file upon removal of entity
-            delete_on_update: true  # determine wheter to delete the file upon update of entity
+            delete_on_update: true  # determine whether to delete the file upon update of entity

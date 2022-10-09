@@ -6,6 +6,8 @@ use App\Entity\User;
 use Exception;
 use Hautelook\AliceBundle\PhpUnit\ReloadDatabaseTrait;
 use JetBrains\PhpStorm\ArrayShape;
+use Symfony\Component\HttpClient\HttpClient;
+use Symfony\Component\HttpFoundation\Response;
 
 class AuthenticationTest extends ApiTester
 {
@@ -24,6 +26,8 @@ class AuthenticationTest extends ApiTester
         $this->assertArrayHasKeys(["token", "mercure_token", "refresh_token", "refresh_token_expiration"], $data);
 
         $data = $this->get("users/me");
+        $this->assertResponseIsSuccessful();
+
         $this->assertEquals($username, $data['email']);
     }
 
@@ -65,6 +69,29 @@ class AuthenticationTest extends ApiTester
 
         $data = $this->get("users/me");
         $this->assertEquals($username, $data['email']);
+    }
+
+
+    public function testAccessMercureHubWithValidToken(): void
+    {
+        $user = $this->getUser("customer");
+
+        $tokens = $this->login($user);
+
+        $hubs = self::getContainer()->getParameter("mercure.hubs");
+
+        $client = HttpClient::createForBaseUri($hubs['default']);
+
+        $response = $client->request("GET", "", [
+            "headers" => [
+                "Authorization" => "Bearer {$tokens['mercure_token']}"
+            ],
+            "query" => [
+                "topic" => "/users/{$user->getId()}/notifications"
+            ]
+        ]);
+
+        $this->assertEquals(Response::HTTP_OK, $response->getStatusCode());
     }
 
 

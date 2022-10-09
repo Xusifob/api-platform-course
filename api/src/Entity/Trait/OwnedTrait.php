@@ -15,16 +15,22 @@ trait OwnedTrait
      */
     #[ApiProperty(readable: false, writable: false)]
     #[ORM\ManyToOne(targetEntity: User::class, cascade: ["remove"])]
-    #[ORM\JoinColumn(referencedColumnName: 'id', nullable: false)]
+    #[ORM\JoinColumn(referencedColumnName: 'id', nullable: false, onDelete: "CASCADE")]
     public ?User $owner = null;
 
     public function isOwnedBy(?User $user): bool
     {
-        if(null === $user) {
+        if (null === $user) {
             return false;
         }
 
         return $this->owner === $user;
+    }
+
+
+    public static function isPrivate(): bool
+    {
+        return true;
     }
 
 

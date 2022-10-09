@@ -3,6 +3,7 @@
 namespace App\EventSubscriber;
 
 use App\Bridge\Elasticsearch\ElasticService;
+use App\Entity\IElasticEntity;
 use App\Entity\IEntity;
 use Doctrine\ORM\Event\LifecycleEventArgs;
 use Doctrine\ORM\Events;
@@ -34,6 +35,7 @@ class ElasticSubscriber implements EventSubscriberInterface
             return;
         }
 
+        /** @var IElasticEntity $item */
         $this->elasticService->create($item);
     }
 
@@ -45,6 +47,7 @@ class ElasticSubscriber implements EventSubscriberInterface
             return;
         }
 
+        /** @var IElasticEntity $item */
         $this->elasticService->update($item);
     }
 
@@ -56,6 +59,7 @@ class ElasticSubscriber implements EventSubscriberInterface
             return;
         }
 
+        /** @var IElasticEntity $item */
         $this->elasticService->delete($item);
     }
 

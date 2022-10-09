@@ -21,10 +21,6 @@ final class MediaObjectHandler implements MessageHandlerInterface
 
     public function __invoke(MediaObject $object)
     {
-        if (!$object->canHavePreview()) {
-            $this->logger->info("{$object} can not generate preview");
-        }
-
         // Fetch the object from the database
         $object = $this->em->getRepository(MediaObject::class)->find($object->getId());
 
@@ -32,13 +28,25 @@ final class MediaObjectHandler implements MessageHandlerInterface
 
         $this->logger->info("Path of $object have been updated");
 
+        if (!$object->canHavePreview()) {
+            $this->logger->info("$object can not have thumbnails");
+            return;
+        }
+
         $this->thumbnailGenerator->generateThumbnails($object);
 
         try {
-            $this->logger->info("$object preview have been generated");
-        }catch (Exception $exception) {
+            $this->logger->info("$object thumbnails have been generated");
+        } catch (Exception $exception) {
             $this->logger->error($exception->getMessage());
         }
-
     }
+
+
+    public function getLogger(): LoggerInterface
+    {
+        return $this->logger;
+    }
+
+
 }

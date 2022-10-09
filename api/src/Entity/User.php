@@ -13,6 +13,8 @@ use App\Entity\Trait\StatusTrait;
 use App\Repository\UserRepository;
 use App\State\User\MeProvider;
 use App\State\User\UserProcessor;
+use App\Validator\Enum\MediaType;
+use App\Validator\IsMedia;
 use DateTimeInterface;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
@@ -20,12 +22,16 @@ use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Serializer\Annotation\SerializedName;
+use Symfony\Component\Validator\Constraints\Email;
+use Symfony\Component\Validator\Constraints\Length;
+use Symfony\Component\Validator\Constraints\NotBlank;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[ORM\Table(name: '`user`')]
 #[ApiResource(
     uriTemplate: '/users/me',
     operations: [new Get()],
+    security: 'is_granted("ROLE_USER")',
     provider: MeProvider::class
 )]
 #[ApiResource(
@@ -52,6 +58,7 @@ class User extends Entity implements IEntity, IStatusEntity, UserInterface, Pass
         'example' => 'john@doe.fr',
         'required' => true
     ], iris: "https://schema.org/email")]
+    #[Email(message: "user.email.invalid")]
     #[ORM\Column(length: 180, unique: true)]
     public ?string $email = null;
 
@@ -77,6 +84,13 @@ class User extends Entity implements IEntity, IStatusEntity, UserInterface, Pass
         'example' => 'My@WesomeP@$$w0rd',
         'required' => true
     ], iris: "https://schema.org/accessCode")]
+    #[NotBlank(message: "user.password.not_blank")]
+    #[Length(
+        min: 8,
+        max: 30,
+        minMessage: "user.password.min_length",
+        maxMessage: "user.password.max_length"
+    )]
     public ?string $plainPassword = null;
 
     #[Groups(["user:item"])]
@@ -225,6 +239,19 @@ class User extends Entity implements IEntity, IStatusEntity, UserInterface, Pass
     public function isCustomer(): bool
     {
         return $this->isRole(UserRole::ROLE_CUSTOMER);
+    }
+
+
+    /**
+     *
+     * Used to fix a bug on auth
+     *
+     * @return string
+     */
+    #[ApiProperty(readable: false, writable: false)]
+    public function getUsername(): string
+    {
+        return $this->email;
     }
 
 

@@ -35,14 +35,14 @@ class MediaUploaderTest extends KernelTestCase
 
         $service = self::getContainer()->get(MediaUploader::class);
 
-        $url = $service->getS3SignedUrl($object);
+        $url = $service->getPublicUrl($object);
 
         $this->assertStringStartsWith("{$service->getReadEndpoint()}/$bucket/$filePath", $url);
         $this->assertStringContainsString(urlencode($mimeType), $url);
         $this->assertStringContainsString(urlencode($originalName), $url);
 
         // Cache is working
-        $cachedUrl = $service->getS3SignedUrl($object);
+        $cachedUrl = $service->getPublicUrl($object);
 
         $this->assertEquals($url, $cachedUrl);
 

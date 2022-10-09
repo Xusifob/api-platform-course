@@ -11,6 +11,7 @@ use App\Bridge\Elasticsearch\ElasticService;
 use App\Entity\IEntity;
 use App\Entity\MediaObject;
 use App\Entity\User;
+use App\Service\MediaUploader;
 use App\Tests\Shared\TesterTrait;
 use Exception;
 use Hautelook\AliceBundle\PhpUnit\ReloadDatabaseTrait;
@@ -361,7 +362,7 @@ abstract class ApiTester extends ApiTestCase
     #[ArrayShape(['Content-Type' => "string", "Accept" => "string"])]
     private function getHeaders(array $headers = []): array
     {
-        if ($this->token) {
+        if ($this->token && !isset($headers['Authorization'])) {
             $headers['Authorization'] = "Bearer $this->token";
         }
 
@@ -581,27 +582,6 @@ abstract class ApiTester extends ApiTestCase
     }
 
 
-    protected function createMediaObject(
-        User $owner,
-        string $filePath = "/path/to/file.png",
-        string $mimeType = "image/png"
-    ): MediaObject {
-        $object = new MediaObject();
-        $object->filePath = $filePath;
-        $object->mimeType = $mimeType;
-        $object->owner = $owner;
-        $object->uploadTime = new \DateTime();
-        $object->bucket = "bucket";
-        $object->originalName = basename($filePath);
-        $object->altText = "My alt text";
-
-        $this->em->persist($object);
-        $this->em->flush();
-
-        return $object;
-    }
-
-
     public function getProfiler(): Profile
     {
         // Check SSE Infos from profiler
@@ -631,11 +611,10 @@ abstract class ApiTester extends ApiTestCase
     }
 
 
-    public function getMercureData(Update $message): array
+    protected function getMercureData(Update $message): array
     {
         return json_decode($message->getData(), true);
     }
-
 
     protected static function populateElasticSearch(string|array $resourceClass = []): void
     {

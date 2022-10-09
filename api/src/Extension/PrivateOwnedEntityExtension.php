@@ -11,7 +11,7 @@ use App\Entity\User;
 use Doctrine\ORM\QueryBuilder;
 use Symfony\Component\Security\Core\Security;
 
-final class OwnedEntityExtension extends AbstractExtension implements QueryCollectionExtensionInterface,
+final class PrivateOwnedEntityExtension extends AbstractExtension implements QueryCollectionExtensionInterface,
                                                                       QueryItemExtensionInterface
 {
 
@@ -56,11 +56,13 @@ final class OwnedEntityExtension extends AbstractExtension implements QueryColle
     {
         $user = $this->security->getUser();
 
+        $rootAlias = $queryBuilder->getRootAliases()[0];
+
         if (!($user instanceof User)) {
+            $queryBuilder->andWhere("1 = 2");
             return;
         }
 
-        $rootAlias = $queryBuilder->getRootAliases()[0];
         $ownerParameter = $queryNameGenerator->generateParameterName("owner");
         $queryBuilder->andWhere("$rootAlias.owner = :$ownerParameter");
         $queryBuilder->setParameter($ownerParameter, $user->getId());
@@ -69,7 +71,12 @@ final class OwnedEntityExtension extends AbstractExtension implements QueryColle
 
     private function supports(string $resourceClass, Operation $operation, array $context = []): bool
     {
-        return is_subclass_of($resourceClass, IOwnedEntity::class);
+        if(!is_subclass_of($resourceClass, IOwnedEntity::class)) {
+            return false;
+        }
+
+        return $resourceClass::isPrivate();
+
     }
 
 }

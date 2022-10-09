@@ -7,7 +7,7 @@
         "ext-iconv": "*",
         "ext-imagick": "*",
         "ext-json": "*",
-        "api-platform/core": "^3.0@rc",
+        "api-platform/core": "3.0",
         "aws/aws-sdk-php": "^3.233",
         "composer/package-versions-deprecated": "^1.11",
         "doctrine/annotations": "^1.0",

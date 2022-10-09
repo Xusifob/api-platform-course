@@ -23,7 +23,12 @@ use Symfony\Component\Serializer\Annotation\Groups;
 #[ORM\Entity(repositoryClass: ProductCategoryRepository::class)]
 #[ORM\Table(name: "product_category")]
 #[ApiResource(operations: [
-    new GetCollection(security: "is_granted('PUBLIC_ACCESS')"),
+    new GetCollection(
+        order: [
+            "name" => "ASC"
+        ],
+        security: "is_granted('PUBLIC_ACCESS')",
+    ),
     new Get(security: "is_granted('VIEW',object)"),
     new Post(securityPostDenormalize: "is_granted('CREATE',object)"),
     new Put(security: "is_granted('UPDATE',object)"),

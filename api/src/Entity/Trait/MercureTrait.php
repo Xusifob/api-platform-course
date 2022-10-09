@@ -12,7 +12,7 @@ trait MercureTrait
     #[ApiProperty(readable: false, writable: false)]
     public function getMercureOptions(): array
     {
-        if ($this instanceof IOwnedEntity) {
+        if ($this instanceof IOwnedEntity && $this::isPrivate()) {
             $topics = [
                 "/users/{$this->owner->id}",
                 "/users/{$this->owner->id}/{$this::getTopicSuffix()}",

@@ -27,7 +27,7 @@ class UsersTest extends ApiTester
             "email" => $emailAddress,
             "givenName" => "John",
             "familyName" => "Doe",
-            "plainPassword" => "test",
+            "plainPassword" => "testTestTest",
             "role" => UserRole::ROLE_CUSTOMER
         ]);
         $this->assertResponseIsSuccessful();

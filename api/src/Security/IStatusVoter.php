@@ -13,22 +13,6 @@ abstract class IStatusVoter extends IEntityVoter
 {
 
 
-    protected function voteOnAttribute(string $attribute, mixed $subject, TokenInterface $token): bool
-    {
-        /** @var User|null $user */
-        $user = $token->getUser();
-
-        return match ($attribute) {
-            self::VIEW => $this->canView($subject, $user),
-            self::CREATE => $this->canCreate($subject, $user),
-            self::UPDATE => $this->canUpdate($subject, $user),
-            self::DELETE => $this->canDelete($subject, $user),
-            self::ARCHIVE => $this->canArchive($subject, $user),
-            self::DISARCHIVE => $this->canDisArchive($subject, $user),
-            default => throw new LogicException("Attribute $attribute is not supported")
-        };
-    }
-
     protected function canView(IStatusEntity $subject, User $user = null): bool
     {
         if ($subject->isActive()) {
@@ -76,16 +60,15 @@ abstract class IStatusVoter extends IEntityVoter
         return parent::canDelete($subject, $user);
     }
 
-
     protected function getSupportedAttributes(): array
     {
         return [
-            self::VIEW,
-            self::CREATE,
-            self::UPDATE,
-            self::DELETE,
-            self::ARCHIVE,
-            self::DISARCHIVE,
+            self::VIEW => 'canView',
+            self::CREATE => 'canCreate',
+            self::UPDATE => 'canUpdate',
+            self::DELETE => 'canDelete',
+            self::ARCHIVE => 'canArchive',
+            self::DISARCHIVE => 'canDisArchive',
         ];
     }
 

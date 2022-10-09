@@ -12,7 +12,7 @@ use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 class ProductRepositoryTest extends KernelTestCase
 {
 
-    private ProductRepository $repository;
+    private readonly ProductRepository $repository;
 
     protected EntityManagerInterface|null $em;
 
@@ -21,9 +21,9 @@ class ProductRepositoryTest extends KernelTestCase
 
     protected function setUp(): void
     {
-        $kernel = self::bootKernel();
+        parent::setUp();
 
-        $this->em = $kernel->getContainer()->get('doctrine')->getManager();
+        $this->em = self::getContainer()->get(EntityManagerInterface::class);
         $this->repository = $this->em->getRepository($this->getClass());
     }
 

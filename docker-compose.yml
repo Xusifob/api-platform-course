@@ -95,6 +95,13 @@ services:
       SERVER_NAME: ":80"
       MERCURE_PUBLISHER_JWT_KEY: ${MERCURE_JWT_SECRET}
       MERCURE_SUBSCRIBER_JWT_KEY: ${MERCURE_JWT_SECRET}
+      MERCURE_EXTRA_DIRECTIVES: |
+        cors_origins none
+        demo
+        subscribe
+        debug
+    # Enable the development mode
+    command: /usr/bin/caddy run -config /etc/caddy/Caddyfile.dev
     
 ###< symfony/mercure-bundle ###
 

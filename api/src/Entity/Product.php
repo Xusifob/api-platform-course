@@ -2,8 +2,8 @@
 
 namespace App\Entity;
 
+use ApiPlatform\Doctrine\Common\Filter\SearchFilterInterface;
 use ApiPlatform\Doctrine\Orm\Filter\OrderFilter;
-use ApiPlatform\Doctrine\Orm\Filter\RangeFilter;
 use ApiPlatform\Doctrine\Orm\Filter\SearchFilter;
 use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\ApiProperty;
@@ -19,6 +19,7 @@ use ApiPlatform\Metadata\Post;
 use ApiPlatform\Metadata\Put;
 use App\Entity\Trait\StatusTrait;
 use App\Filter\Elasticsearch\StatusEntityFilter as ElasticStatusEntityFilter;
+use App\Filter\ProductFilter;
 use App\Filter\StatusEntityFilter;
 use App\Repository\ProductRepository;
 use App\State\ElasticProvider;
@@ -41,10 +42,13 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[ApiResource(
     operations: [
         new GetCollection(
-            security: "is_granted('PUBLIC_ACCESS')",
+            order: [
+                "name" => "ASC"
+            ],
+            security: "is_granted('PUBLIC_ACCESS')"
         ),
         new Post(securityPostDenormalize: "is_granted('CREATE',object)", processor: ProductProcessor::class),
-        new Put(security: "is_granted('UPDATE',object)", processor: ProductProcessor::class),
+        new Put(securityPostDenormalize: "is_granted('UPDATE',previous_object)", processor: ProductProcessor::class),
         new Delete(security: "is_granted('DELETE',object)")
     ],)]
 #[ApiResource(
@@ -76,6 +80,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[ApiFilter(StatusEntityFilter::class, properties: ['archived'])]
 #[ApiFilter(ElasticStatusEntityFilter::class, properties: ['archived'])]
 #[ApiFilter(OrderFilter::class, properties: ["id" => "DESC", "reference" => "ASC", "name" => "ASC"])]
+#[ApiFilter(ProductFilter::class, properties: ["search"])]
 #[IsDiscountValid(message: "product.discount_percent.invalid")]
 class Product extends Entity implements IElasticEntity, IStatusEntity, INamedEntity
 {
@@ -92,7 +97,7 @@ class Product extends Entity implements IElasticEntity, IStatusEntity, INamedEnt
         'required' => true
     ], iris: "https://schema.org/name")]
     #[Assert\NotBlank(message: "product.name.not_blank")]
-    #[ApiFilter(SearchFilter::class, strategy: "start")]
+    #[ApiFilter(SearchFilter::class, strategy: SearchFilterInterface::STRATEGY_START)]
     public ?string $name = null;
 
 
@@ -133,7 +138,8 @@ class Product extends Entity implements IElasticEntity, IStatusEntity, INamedEnt
     #[ORM\ManyToMany(targetEntity: ProductCategory::class, inversedBy: "products", cascade: ["remove"])]
     #[ORM\JoinColumn(referencedColumnName: 'id', nullable: false)]
     #[Assert\Count(min: 1, minMessage: "product.category.not_null")]
-    #[ApiFilter(SearchFilter::class, properties: ['categories.name' => 'exact'])]
+    #[ApiFilter(SearchFilter::class, properties: ['categories.name' => SearchFilterInterface::STRATEGY_START])]
+    #[ApiFilter(SearchFilter::class, strategy: SearchFilterInterface::STRATEGY_EXACT)]
     private Collection $categories;
 
 
@@ -168,6 +174,7 @@ class Product extends Entity implements IElasticEntity, IStatusEntity, INamedEnt
         '$ref' => '#/components/schemas/MediaObject'
     ])]
     #[ORM\ManyToOne(targetEntity: MediaObject::class, cascade: ["remove"])]
+    #[ORM\JoinColumn(referencedColumnName: 'id', nullable: true, onDelete: "SET NULL")]
     #[IsMedia(type: MediaType::IMAGE, message: "product.main_photo.type_invalid")]
     public ?MediaObject $mainPhoto = null;
 

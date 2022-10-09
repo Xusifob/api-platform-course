@@ -2,6 +2,7 @@
 
 namespace App\State\Product;
 
+use ApiPlatform\Metadata\HttpOperation;
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProcessorInterface;
 use App\Entity\Enum\NotificationType;
@@ -10,11 +11,6 @@ use App\Entity\Notification;
 use App\Entity\Product;
 use App\Entity\User;
 use Doctrine\ORM\EntityManagerInterface;
-use Exception;
-use Psr\Log\LoggerInterface;
-use Symfony\Bridge\Twig\Mime\TemplatedEmail;
-use Symfony\Component\Mailer\MailerInterface;
-use Symfony\Component\Mime\Address;
 use Symfony\Component\Routing\RouterInterface;
 
 final class ProductProcessor implements ProcessorInterface
@@ -26,17 +22,56 @@ final class ProductProcessor implements ProcessorInterface
     ) {
     }
 
+    /**
+     * @param Product $data
+     * @param HttpOperation $operation
+     * @param array $uriVariables
+     * @param array $context
+     * @return Product
+     */
     public function process($data, Operation $operation, array $uriVariables = [], array $context = []): Product
     {
         /** @var Product $result */
         $result = $this->decorated->process($data, $operation, $uriVariables, $context);
 
-        if ($result->isSale()) {
-            $this->createSaleNotification($result);
+        return match ($operation->getMethod()) {
+            HttpOperation::METHOD_POST => $this->processPost($result),
+            HttpOperation::METHOD_PUT => $this->processPut($result, $context),
+            default => $result
+        };
+    }
+
+
+    private function processPut(Product $product, array $context = []): Product
+    {
+        /** @var Product|null $previousProduct */
+        $previousProduct = $context['previous_data'];
+
+        if ($previousProduct?->discountPercent === $product->discountPercent) {
+            return $product;
         }
 
-        return $result;
+        if (!$product->isSale()) {
+            return $product;
+        }
+
+        $this->createSaleNotification($product);
+
+        return $product;
     }
+
+
+    private function processPost(Product $product): Product
+    {
+        if (!$product->isSale()) {
+            return $product;
+        }
+
+        $this->createSaleNotification($product);
+
+        return $product;
+    }
+
 
     private function createSaleNotification(Product $product): void
     {

@@ -4,3 +4,4 @@ auth:
     resource: routes/auth.yaml
 api_platform:
     resource: routes/api_platform.yaml
+

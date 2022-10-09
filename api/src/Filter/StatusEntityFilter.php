@@ -21,7 +21,7 @@ class StatusEntityFilter extends AbstractFilter
         string $resourceClass,
         Operation $operation = null,
         array $context = []
-    ) {
+    ) : void {
 
         if ($property === "archived") {
             $this->addArchivedFilter($queryBuilder, $queryNameGenerator, $value);

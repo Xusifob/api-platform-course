@@ -28,7 +28,7 @@ class MediaObjectTest extends ApiTester
 
         $altText = "My alt text";
 
-        $data = $this->uploadFile("upload", __DIR__ . '/../../fixtures/files/api_platform_logo.png',[
+        $data = $this->uploadFile("upload", __DIR__ . '/../../fixtures/files/api_platform_logo.png', [
             "altText" => $altText
         ]);
 
@@ -102,6 +102,21 @@ class MediaObjectTest extends ApiTester
         $this->assertEquals($object->mimeType, $data['mimeType']);
         $this->assertEquals($object->originalName, $data['originalName']);
         $this->assertStringStartsWith("https://localhost:4566/", $data['previewUrl']);
+    }
+
+
+    public function testDeleteMediaObject(): void
+    {
+        $customer = $this->getUser("customer");
+        $this->login($customer);
+
+        $object = $this->createMediaObject($customer,'api_platform_logo.png',"image/png");
+
+        $this->delete($object);
+
+        $this->assertResponseIsSuccessful();
+
+        $this->assertNull($this->em->find(MediaObject::class, $object->getId()));
     }
 
 

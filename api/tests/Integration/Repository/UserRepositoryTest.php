@@ -12,7 +12,7 @@ use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 class UserRepositoryTest extends KernelTestCase
 {
 
-    private UserRepository $repository;
+    private readonly UserRepository $repository;
 
     protected EntityManagerInterface|null $em;
 
@@ -21,11 +21,12 @@ class UserRepositoryTest extends KernelTestCase
 
     protected function setUp(): void
     {
-        $kernel = self::bootKernel();
+        parent::setUp();
 
-        $this->em = $kernel->getContainer()->get('doctrine')->getManager();
+        $this->em = self::getContainer()->get(EntityManagerInterface::class);
         $this->repository = $this->em->getRepository($this->getClass());
     }
+
 
     public function testFindByRole()
     {

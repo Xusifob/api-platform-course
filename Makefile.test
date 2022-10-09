@@ -22,6 +22,5 @@ phpunit: ## [Development] Run a command inside docker
 phpunit-now: ## [Development] Run a command inside docker
 	docker-compose exec php bin/phpunit --testdox --group=now
 
-
 run-test-command:
 	docker-compose run --rm php php bin/console $(command) --env=test

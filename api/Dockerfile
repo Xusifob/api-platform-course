@@ -59,6 +59,10 @@ RUN docker-php-ext-install pdo pdo_pgsql
 RUN apt-get update && apt-get install -y libmagickwand-dev --no-install-recommends && \
 	pecl install imagick && docker-php-ext-enable imagick
 
+RUN curl -sL https://deb.nodesource.com/setup_14.x | bash -
+RUN apt-get install -y nodejs
+RUN npm install -g yarn
+
 RUN a2enmod proxy
 RUN a2enmod proxy_http
 

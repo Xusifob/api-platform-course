@@ -3,6 +3,7 @@
 namespace App\Security;
 
 
+use App\Entity\IEntity;
 use LogicException;
 use App\Entity\MediaObject;
 use App\Entity\Product;
@@ -18,27 +19,6 @@ class MediaObjectVoter extends IEntityVoter
         return MediaObject::class;
     }
 
-    protected function getSupportedAttributes(): array
-    {
-        return [self::CREATE, self::VIEW];
-    }
-
-    protected function voteOnAttribute(string $attribute, mixed $subject, TokenInterface $token): bool
-    {
-        $user = $token->getUser();
-
-        if (!($user instanceof User)) {
-            return false;
-        }
-
-        return match ($attribute) {
-            self::CREATE => $this->canCreate($subject, $user),
-            self::VIEW => $this->canView($subject, $user),
-            default => throw new LogicException("Attribute $attribute is not supported")
-        };
-    }
-
-
     public function canView(MediaObject $subject, User $user): bool
     {
         return $subject->isOwnedBy($user) || $user->isAdmin();
@@ -47,6 +27,30 @@ class MediaObjectVoter extends IEntityVoter
     public function canCreate(MediaObject $subject, User $user): bool
     {
         return null === $subject->owner || $subject->isOwnedBy($user) || $user->isAdmin();
+    }
+
+
+    /**
+     * @param MediaObject $subject
+     * @param User|null $user
+     * @return bool
+     */
+    public function canDelete(IEntity $subject, User $user = null): bool
+    {
+        if ($user?->isAdmin()) {
+            return true;
+        }
+
+        return $subject->isOwnedBy($user);
+    }
+
+    protected function getSupportedAttributes(): array
+    {
+        return [
+            self::CREATE => "canCreate",
+            self::VIEW => "canView",
+            self::DELETE => "canDelete"
+        ];
     }
 
 }

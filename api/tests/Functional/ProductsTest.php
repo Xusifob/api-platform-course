@@ -78,6 +78,41 @@ class ProductsTest extends ApiTester
         $this->assertCollectionKeyContains($data, "name", $product->name);
     }
 
+    /**
+     *
+     * @dataProvider getFormats
+     *
+     **/
+    public function testFilterProductsBySearch(string $format): void
+    {
+        $this->format = $format;
+
+        $product = $this->getProduct();
+
+        $name = substr($product->name, 3, 10);
+
+        $data = $this->get("/products", [
+            "search" => $name
+        ]);
+        $this->assertResponseIsSuccessful();
+
+        $this->assertGetCollectionCount(1, $data);
+
+        $this->assertCollectionKeyContains($data, "name", $product->name);
+
+
+        $name = substr($product->description, 0, 10);
+
+        $data = $this->get("/products", [
+            "search" => $name
+        ]);
+        $this->assertResponseIsSuccessful();
+
+        $this->assertGetCollectionCount(1, $data);
+
+        $this->assertCollectionKeyContains($data, "name", $product->name);
+    }
+
 
     /**
      *
@@ -263,7 +298,7 @@ class ProductsTest extends ApiTester
         $this->login("admin");
 
         $category = $this->getEntity(ProductCategory::class);
-        $photo = $this->createMediaObject($this->getAdmin(), "path/to/document.pdf", "application/pdf");
+        $photo = $this->createMediaObject($this->getAdmin(), "document.pdf", "application/pdf");
 
         $postData = $this->formatData([
             "name" => "My awesome product",
@@ -323,7 +358,7 @@ class ProductsTest extends ApiTester
         $this->login("admin");
 
         $category = $this->getEntity(ProductCategory::class);
-        $photo = $this->createMediaObject($this->getAdmin());
+        $photo = $this->createMediaObject($this->getAdmin(), 'api_platform_logo.png', "image/png");
 
         $postData = $this->formatData([
             "name" => "My awesome product",
@@ -415,6 +450,7 @@ class ProductsTest extends ApiTester
 
         $postData = $this->formatData([
             "name" => "My new name",
+            "discountPercent" => 25
         ]);
 
         $data = $this->put($product, $postData);
@@ -453,10 +489,8 @@ class ProductsTest extends ApiTester
 
         $this->assertResponseStatusCodeSame(Response::HTTP_OK);
 
-        $this->assertCount(11,$data['data']['products']['edges']);
-        $this->assertArrayHasKeys(['id','name','reference'],$data['data']['products']['edges'][0]['node']);
-
-
+        $this->assertCount(11, $data['data']['products']['edges']);
+        $this->assertArrayHasKeys(['id', 'name', 'reference'], $data['data']['products']['edges'][0]['node']);
     }
 
     public function testGraphQlGetItem(): void

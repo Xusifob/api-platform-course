@@ -71,7 +71,7 @@ services:
     ### Documentation
     App\OpenApi\OpenApiDecorator:
         decorates: 'api_platform.openapi.factory'
-        
+    
     App\OpenApi\AuthDecorator:
         decorates: 'api_platform.openapi.factory'
 
@@ -114,3 +114,9 @@ services:
         bind:
             $decorated: '@ApiPlatform\Symfony\Messenger\Processor'
     
+    
+    ### Entity listeners
+    App\Doctrine\EntityListener\OwnedEntityListener:
+        class: App\Doctrine\EntityListener\OwnedEntityListener
+        tags:
+            - { name: doctrine.event_listener, event: prePersist }

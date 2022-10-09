@@ -3,8 +3,6 @@
 namespace App\Entity;
 
 use App\Entity\Enum\EntityStatus;
-use Stringable;
-
 
 /**
  * @property EntityStatus $status

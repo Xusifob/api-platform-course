@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use ApiPlatform\Metadata\Delete;
 use DateTimeInterface;
 use ApiPlatform\Metadata\ApiProperty;
 use ApiPlatform\Metadata\ApiResource;
@@ -54,6 +55,10 @@ use Vich\UploaderBundle\Mapping\Annotation as Vich;
             validationContext: ['groups' => ['Default', 'media_object:post']],
             deserialize: false,
             processor: MediaObjectProcessor::class
+        ),
+        new Delete(
+            securityPostDenormalize: "is_granted('DELETE',object)",
+            processor: MediaObjectProcessor::class
         )
     ],
 )]
@@ -67,7 +72,7 @@ class MediaObject extends Entity implements IOwnedEntity
         'application/pdf'
     ];
 
-    final public const THUMBNAIL_SIZES = [null, "50x50", "200x*"];
+    final public const THUMBNAIL_SIZES = ["50x50", "200x*"];
 
     use OwnedTrait;
 
@@ -151,7 +156,8 @@ class MediaObject extends Entity implements IOwnedEntity
     #[ApiProperty(writable: false, schema: [
         'type' => ['string', 'null'],
         'description' => "If this media is a thumbnail, this is the size of it (width*height)",
-        'enum' => self::THUMBNAIL_SIZES,
+        'enum' => [null, ...self::THUMBNAIL_SIZES],
+        'nullable' => true,
         'required' => false
     ])]
     #[ORM\Column(type: "string", length: 20, nullable: true)]
@@ -177,7 +183,7 @@ class MediaObject extends Entity implements IOwnedEntity
      */
     #[ORM\ManyToOne(targetEntity: MediaObject::class, inversedBy: "thumbnails")]
     #[ApiProperty(readable: false, writable: false)]
-    #[ORM\JoinColumn(referencedColumnName: 'id', nullable: true)]
+    #[ORM\JoinColumn(referencedColumnName: 'id', nullable: true, onDelete: "CASCADE")]
     public MediaObject|null $mainObject = null;
 
     public function __construct(array $data = [])

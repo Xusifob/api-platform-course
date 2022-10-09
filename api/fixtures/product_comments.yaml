@@ -1,0 +1,7 @@
+App\Entity\ProductComment:
+    product_comment_1:
+        title: <sentence(4)>
+        comment: <text()>
+        rating: 4.5
+        product: '@product_1'
+        owner: '@customer_1'

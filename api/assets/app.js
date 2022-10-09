@@ -37,7 +37,7 @@ const init = async () => {
   const topic = `/users/${user.id}/notification`;
   const token = tokens.mercure_token;
 
-  const source = new EventSourcePolyfill(`https://localhost/.well-known/mercure?topic=${topic}`, {
+  const source = new EventSourcePolyfill(`https://localhost:3000/.well-known/mercure?topic=${topic}`, {
     headers: {
       'Authorization': `Bearer ${token}`,
     }

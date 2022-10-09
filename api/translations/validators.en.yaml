@@ -21,5 +21,23 @@ media_object:
     size:
         invalid: Your file is too heavy.
 
+product_comment:
+    title: 
+        not_blank: Please enter a title
+    comment:
+        not_blank: Please enter a comment
+    product:
+        not_null: Please link your comment to a product
+    rating:
+        not_null: Please enter a rating
 news:
     not_found: News not found
+    
+user:
+    avatar:
+        type_invalid: Please select a photo
+    email:
+        invalid: Please enter a valid email
+    password:
+        min_length: Your password must be at least {{ min }} characters long
+        max_length: Your password must be between {{ min }} and {{ max }} characters
