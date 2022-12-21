@@ -288,10 +288,10 @@ abstract class ApiTester extends ApiTestCase
             $this->assertContains($expectedPropertyPath, $propertyPaths);
         }
 
-        foreach ($expectedMessages as $key => $expectedMessage) {
-            $translation = $this->translator->trans($expectedMessage, $expectedParameters[$key] ?? [], "validators");
+        foreach ($expectedMessages as $key => $translationKey) {
+            $translation = $this->translator->trans($translationKey, $expectedParameters[$key] ?? [], "validators");
             $this->assertContains($translation, $messages);
-            $this->assertNotContains($expectedMessage, $messages);
+            $this->assertNotContains($translationKey, $messages,"Missing translation for $translationKey");
         }
 
         $this->assertCount(count($expectedMessages), $data[$violationKey]);

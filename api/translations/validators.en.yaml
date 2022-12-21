@@ -41,3 +41,9 @@ user:
     password:
         min_length: Your password must be at least {{ min }} characters long
         max_length: Your password must be between {{ min }} and {{ max }} characters
+        weak: Your password is weak, please add minimum 8 char, 1 uppercase, 1 lowercase and 1 number,
+        not_match: The two passwords don't match
+    given_name:
+        invalid: Please enter a name
+    family_name:
+        invalid: Please enter a name

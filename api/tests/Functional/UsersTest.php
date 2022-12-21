@@ -23,7 +23,7 @@ class UsersTest extends ApiTester
 
         $emailAddress = "test@api-platform.com";
 
-        $data = $this->post("/users", [
+        $this->post("/users", [
             "email" => $emailAddress,
             "givenName" => "John",
             "familyName" => "Doe",
@@ -37,9 +37,49 @@ class UsersTest extends ApiTester
         $email = $this->getMailerMessage();
 
         $this->assertEmailHtmlBodyContains($email, "Welcome John");
-        $this->assertEmailHeaderSame($email, 'To',"John Doe <$emailAddress>");
+        $this->assertEmailHeaderSame($email, 'To', "John Doe <$emailAddress>");
         $this->assertEmailHeaderSame($email, 'Subject', "Welcome to the platform!");
+    }
 
+
+    public function testSignUpInvalid(): void
+    {
+
+        $data = $this->post("/signup");
+
+        $this->assertResponseIsUnprocessable();
+        $this->assertHasViolations($data, ["email", "givenName", "familyName", "password", "repeatPassword"], [
+            "user.email.invalid",
+            "user.given_name.invalid",
+            "user.family_name.invalid",
+            "user.password.weak",
+            "user.password.not_match",
+        ]);
+
+    }
+
+
+    public function testSignUp(): void
+    {
+        $emailAddress = "test@api-platform.com";
+
+        $data = $this->post("/signup", [
+            "email" => $emailAddress,
+            "givenName" => "John",
+            "familyName" => "Doe",
+            "password" => "testTestTestA@33",
+            "repeatPassword" => "testTestTestA@33"
+        ]);
+
+        $this->assertResponseIsSuccessful();
+
+        $this->assertEmailCount(1);
+
+        $this->assertEquals("John", $data["givenName"]);
+        $this->assertEquals("Doe", $data["familyName"]);
+        $this->assertEquals($emailAddress, $data["email"]);
+        $this->assertEquals(UserRole::ROLE_CUSTOMER->value, $data["role"]);
+        $this->assertTrue($data["activationEmailSent"]);
     }
 
 

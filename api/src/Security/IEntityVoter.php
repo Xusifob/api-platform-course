@@ -71,7 +71,7 @@ abstract class IEntityVoter extends Voter
 
     public function supportsAttribute(string $attribute): bool
     {
-        return in_array($attribute, array_keys($this->getSupportedAttributes()));
+        return array_key_exists($attribute, $this->getSupportedAttributes());
     }
 
 

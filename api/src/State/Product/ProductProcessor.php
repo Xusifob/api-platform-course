@@ -25,9 +25,6 @@ final class ProductProcessor implements ProcessorInterface
     /**
      * @param Product $data
      * @param HttpOperation $operation
-     * @param array $uriVariables
-     * @param array $context
-     * @return Product
      */
     public function process($data, Operation $operation, array $uriVariables = [], array $context = []): Product
     {

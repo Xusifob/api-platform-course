@@ -8,13 +8,14 @@ use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Post;
 use App\Doctrine\EntityListener\UserListener;
+use App\Dto\User\Input\SignupInputDto;
+use App\Dto\User\Output\SignupOutputDto;
 use App\Entity\Enum\UserRole;
 use App\Entity\Trait\StatusTrait;
 use App\Repository\UserRepository;
 use App\State\User\MeProvider;
+use App\State\User\SignupProcessor;
 use App\State\User\UserProcessor;
-use App\Validator\Enum\MediaType;
-use App\Validator\IsMedia;
 use DateTimeInterface;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
@@ -37,7 +38,16 @@ use Symfony\Component\Validator\Constraints\NotBlank;
 #[ApiResource(
     uriTemplate: '/users',
     operations: [new Post()],
-    processor: UserProcessor::class
+    security: 'is_granted("ROLE_ADMIN")',
+    processor: UserProcessor::class,
+)]
+#[ApiResource(
+    uriTemplate: '/signup',
+    operations: [new Post()],
+    input: SignupInputDto::class,
+    output: SignupOutputDto::class,
+    security: 'is_granted("PUBLIC_ACCESS")',
+    processor: SignupProcessor::class,
 )]
 #[ApiResource(
     operations: [
@@ -245,8 +255,6 @@ class User extends Entity implements IEntity, IStatusEntity, UserInterface, Pass
     /**
      *
      * Used to fix a bug on auth
-     *
-     * @return string
      */
     #[ApiProperty(readable: false, writable: false)]
     public function getUsername(): string

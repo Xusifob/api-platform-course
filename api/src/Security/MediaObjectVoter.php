@@ -33,7 +33,6 @@ class MediaObjectVoter extends IEntityVoter
     /**
      * @param MediaObject $subject
      * @param User|null $user
-     * @return bool
      */
     public function canDelete(IEntity $subject, User $user = null): bool
     {

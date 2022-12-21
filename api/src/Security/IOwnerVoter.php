@@ -26,7 +26,6 @@ abstract class IOwnerVoter extends IEntityVoter
     /**
      * @param IOwnedEntity $subject
      * @param User|null $user
-     * @return bool
      */
     protected function canUpdate(IEntity $subject, User $user = null): bool
     {

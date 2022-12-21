@@ -25,22 +25,15 @@ final class MediaObjectProcessor implements ProcessorInterface
     /**
      * @param MediaObject $data
      * @param HttpOperation $operation
-     * @param array $uriVariables
-     * @param array $context
      * @return mixed
      */
     public function process($data, Operation $operation, array $uriVariables = [], array $context = [])
     {
-        switch ($operation->getMethod()) {
-            case HttpOperation::METHOD_POST:
-                $data = $this->processPost($data, $operation, $uriVariables, $context);
-                break;
-            case HttpOperation::METHOD_DELETE:
-                $data = $this->processDelete($data);
-                break;
-        }
-
-        return $data;
+        return match ($operation->getMethod()) {
+            HttpOperation::METHOD_POST => $this->processPost($data, $operation, $uriVariables, $context),
+            HttpOperation::METHOD_DELETE => $this->processDelete($data),
+            default => $data,
+        };
     }
 
 

@@ -12,7 +12,7 @@ use App\Entity\User;
 class ProductCommentVoter extends IOwnerVoter
 {
 
-    public const MODERATE = "MODERATE";
+    final public const MODERATE = "MODERATE";
 
     protected function getSupportedClass(): string
     {
@@ -23,7 +23,6 @@ class ProductCommentVoter extends IOwnerVoter
     /**
      * @param ProductComment $subject
      * @param User|null $user
-     * @return bool
      */
     public function canView(IOwnedEntity $subject, User $user = null): bool
     {
@@ -34,7 +33,6 @@ class ProductCommentVoter extends IOwnerVoter
     /**
      * @param ProductComment $subject
      * @param User|null $user
-     * @return bool
      */
     public function canCreate(IOwnedEntity $subject, User $user = null): bool
     {
@@ -54,7 +52,6 @@ class ProductCommentVoter extends IOwnerVoter
     /**
      * @param ProductComment $subject
      * @param User|null $user
-     * @return bool
      */
     public function canUpdate(IEntity $subject, User $user = null): bool
     {

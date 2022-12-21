@@ -16,8 +16,6 @@ interface IOwnedEntity extends IEntity
     /**
      *
      * If the data linked to this entity is private and should never be accessed by other users
-     *
-     * @return bool
      */
     public static function isPrivate(): bool;
 
