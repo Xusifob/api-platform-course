@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Tests\Functional;
 
 use App\Entity\Enum\EntityStatus;
@@ -27,7 +29,7 @@ class ProductCommentsTest extends ApiTester
     {
         $product = $this->getProduct();
 
-        $data = $this->get("/products/{$product->getId()}/comments");
+        $data = $this->get("/products/{$product->reference}/comments");
 
         $this->assertResponseIsSuccessful();
 
@@ -238,7 +240,7 @@ class ProductCommentsTest extends ApiTester
     {
         $this->login("customer");
         $comment = $this->getComment();
-        $data = $this->put($comment, [
+        $data = $this->patch($comment, [
             "isModerated" => true,
         ]);
 
@@ -252,7 +254,7 @@ class ProductCommentsTest extends ApiTester
     {
         $this->login("admin");
         $comment = $this->getComment();
-        $data = $this->put($comment, [
+        $data = $this->patch($comment, [
             "isModerated" => true,
         ]);
         $this->assertResponseIsSuccessful();
@@ -273,7 +275,7 @@ class ProductCommentsTest extends ApiTester
             "rating" => 1
         ];
 
-        $data = $this->put($comment, $postData);
+        $data = $this->patch($comment, $postData);
 
         $this->assertResponseIsSuccessful();
 

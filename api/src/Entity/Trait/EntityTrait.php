@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Entity\Trait;
 
 use ApiPlatform\Metadata\ApiProperty;
@@ -7,15 +9,15 @@ use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\IdGenerator\UuidGenerator;
 use Symfony\Component\Serializer\Annotation\Groups;
 
+use Symfony\Component\Uid\UuidV6;
+
 use function Symfony\Component\String\u;
 
 
 trait EntityTrait
 {
 
-    /**
-     * The entity ID
-     */
+
     #[ORM\Id]
     #[ORM\Column(type: 'uuid', unique: true, nullable: false)]
     #[ApiProperty(schema: [
@@ -28,7 +30,7 @@ trait EntityTrait
     #[ORM\CustomIdGenerator(class: UuidGenerator::class)]
     protected $id;
 
-    public function getId(): ?string
+    public function getId(): null|UuidV6|string
     {
         return $this->id;
     }

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Entity;
 
 use ApiPlatform\Doctrine\Common\Filter\SearchFilterInterface;
@@ -12,6 +14,7 @@ use ApiPlatform\Metadata\Delete;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Link;
+use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Post;
 use ApiPlatform\Metadata\Put;
 use App\Entity\Enum\EntityStatus;
@@ -35,7 +38,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[ApiResource(
     operations: [
         new Post(securityPostDenormalize: "is_granted('CREATE',object)"),
-        new Put(security: "is_granted('UPDATE',previous_object)"),
+        new Patch(security: "is_granted('UPDATE',previous_object)"),
         new Delete(security: "is_granted('DELETE',object)"),
         new Get(security: "is_granted('VIEW',object)")
     ]

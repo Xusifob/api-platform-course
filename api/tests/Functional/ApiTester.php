@@ -1,9 +1,12 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Tests\Functional;
 
 use ApiPlatform\Api\IriConverterInterface;
 use ApiPlatform\Exception\ResourceClassNotFoundException;
+use ApiPlatform\Metadata\HttpOperation;
 use ApiPlatform\Metadata\Resource\Factory\ResourceMetadataCollectionFactoryInterface;
 use ApiPlatform\Symfony\Bundle\Test\ApiTestCase;
 use ApiPlatform\Symfony\Bundle\Test\Client;
@@ -91,7 +94,7 @@ abstract class ApiTester extends ApiTestCase
     {
         $file = new UploadedFile($file, basename($file));
 
-        $response = $this->apiClient->request('POST', $url, [
+        $response = $this->apiClient->request(HttpOperation::METHOD_POST, $url, [
             'headers' => $this->getHeaders(['Content-Type' => 'multipart/form-data']),
             'extra' => [
                 'parameters' => $params,
@@ -119,21 +122,21 @@ abstract class ApiTester extends ApiTestCase
 
     protected function post(string $url, array $json = []): ?array
     {
-        return $this->doRequest("POST", $url, $json);
+        return $this->doRequest(HttpOperation::METHOD_POST, $url, $json);
     }
 
-    protected function put(IEntity|string $url, array $json = []): ?array
+    protected function patch(IEntity|string $url, array $json = []): ?array
     {
         $url = $this->getUrl($url);
 
-        return $this->doRequest("PUT", $url, $json);
+        return $this->doRequest(HttpOperation::METHOD_PATCH, $url, $json);
     }
 
     protected function delete(IEntity|string $url): ?array
     {
         $url = $this->getUrl($url);
 
-        return $this->doRequest("DELETE", $url);
+        return $this->doRequest(HttpOperation::METHOD_DELETE, $url);
     }
 
 
@@ -141,7 +144,7 @@ abstract class ApiTester extends ApiTestCase
     {
         $url = $this->getUrl($url);
 
-        return $this->doRequest("GET", $url, $query, $options);
+        return $this->doRequest(HttpOperation::METHOD_GET, $url, $query, $options);
     }
 
 
@@ -163,10 +166,10 @@ abstract class ApiTester extends ApiTestCase
     private function doRequest(string $method, string $url, array $data = [], array $options = []): ?array
     {
         $params = [
-            "headers" => $this->getHeaders($options['headers'] ?? [])
+            "headers" => $this->getHeaders($options['headers'] ?? [], $method)
         ];
 
-        if ($method === "GET") {
+        if ($method === HttpOperation::METHOD_GET) {
             $params['query'] = $data;
         } else {
             $params['json'] = $data;
@@ -291,7 +294,10 @@ abstract class ApiTester extends ApiTestCase
         foreach ($expectedMessages as $key => $translationKey) {
             $translation = $this->translator->trans($translationKey, $expectedParameters[$key] ?? [], "validators");
             $this->assertContains($translation, $messages);
-            $this->assertNotContains($translationKey, $messages,"Missing translation for $translationKey");
+            // We only want to make sure not full texts are passed
+            if (!str_contains($translationKey, " ")) {
+                $this->assertNotContains($translationKey, $messages, "Missing translation for $translationKey");
+            }
         }
 
         $this->assertCount(count($expectedMessages), $data[$violationKey]);
@@ -360,7 +366,7 @@ abstract class ApiTester extends ApiTestCase
      * @throws Exception
      */
     #[ArrayShape(['Content-Type' => "string", "Accept" => "string"])]
-    private function getHeaders(array $headers = []): array
+    private function getHeaders(array $headers = [], ?string $method = null): array
     {
         if ($this->token && !isset($headers['Authorization'])) {
             $headers['Authorization'] = "Bearer $this->token";
@@ -368,7 +374,7 @@ abstract class ApiTester extends ApiTestCase
 
         $contentType = match ($this->format) {
             self::FORMAT_JSONLD => [
-                'Content-Type' => "application/ld+json",
+                'Content-Type' => $method === HttpOperation::METHOD_PATCH ? "application/merge-patch+json" : "application/ld+json",
                 "Accept" => "application/ld+json"
             ],
             self::FORMAT_JSONAPI => [

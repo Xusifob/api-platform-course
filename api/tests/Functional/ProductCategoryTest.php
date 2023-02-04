@@ -1,9 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Tests\Functional;
 
 use App\Entity\Enum\EntityStatus;
-use App\Entity\Product;
 use App\Entity\ProductCategory;
 
 class ProductCategoryTest extends ApiTester
@@ -120,6 +121,26 @@ class ProductCategoryTest extends ApiTester
     }
 
 
+    public function testCreateProductCategoryInvalidValues(): void
+    {
+        $this->login("admin");
+
+        $this->format = self::FORMAT_JSONLD;
+
+        $data = $this->post("/product_categories", [
+            "name" => ["New category"],
+            "description" => 3,
+        ]);
+
+        $this->assertResponseIsUnprocessable();
+
+        $this->assertHasViolations($data, ['name', 'description'], [
+            'This value should be of type string.',
+            'This value should be of type string.',
+        ]);
+    }
+
+
     public function testCreateProductCategoryJsonApi(): void
     {
         $this->login("admin");
@@ -147,22 +168,25 @@ class ProductCategoryTest extends ApiTester
 
     public function testUpdateProductCategoryJsonLD(): void
     {
+        /** @var ProductCategory $category */
         $category = $this->getEntity();
 
         $this->login("admin");
 
         $this->format = self::FORMAT_JSONLD;
 
-        $data = $this->put($category, [
+        $data = $this->patch($category, [
             "name" => "New category name",
             "description" => "The new description of the new category",
         ]);
+
         $this->assertResponseIsSuccessful();
 
         $this->assertArrayHasKeys(["@context", "@id", "@type", "name", "description", "id", "rights"], $data);
 
         $this->assertEquals("New category name", $data['name']);
         $this->assertEquals("The new description of the new category", $data['description']);
+
     }
 
     public function testUpdateProductCategoryJsonApi(): void
@@ -173,7 +197,7 @@ class ProductCategoryTest extends ApiTester
 
         $this->format = self::FORMAT_JSONAPI;
 
-        $data = $this->put("product_categories/{$entity->getId()}", [
+        $data = $this->patch("product_categories/{$entity->getId()}", [
             "data" => [
                 "attributes" => [
                     "name" => "New category name",

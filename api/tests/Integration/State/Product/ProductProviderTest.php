@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Tests\Integration\State\Product;
 
 
@@ -40,7 +42,7 @@ class ProductProviderTest extends KernelTestCase
 
         $operation = $this->prophesize(Operation::class)->reveal();
         $uriVariables = [
-            'id' => $fieldType === "function" ? $product->$field() : $product->$field,
+            'reference' => $fieldType === "function" ? $product->$field() : $product->$field,
         ];
         $context = [];
 

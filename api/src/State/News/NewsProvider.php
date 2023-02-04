@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\State\News;
 
 use ApiPlatform\Metadata\Operation;
@@ -10,6 +12,7 @@ use App\Bridge\NewsApi\Entity\News;
 use App\Pagination\Paginator;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Uid\Uuid;
+use Symfony\Component\Uid\UuidV6;
 use Symfony\Contracts\Cache\CacheInterface;
 use Symfony\Contracts\Cache\ItemInterface;
 
@@ -37,7 +40,7 @@ class NewsProvider implements ProviderInterface
     }
 
 
-    private function getItem(string $newsId): News
+    private function getItem(string|Uuid $newsId): News
     {
         return $this->getFromCache($newsId);
     }
@@ -72,7 +75,7 @@ class NewsProvider implements ProviderInterface
     {
         $data['source'] = $data['source']['name'];
         $data['image'] = $data['urlToImage'];
-        $data['id'] = Uuid::v4();
+        $data['id'] = Uuid::v6();
         return new News($data);
     }
 
@@ -87,7 +90,7 @@ class NewsProvider implements ProviderInterface
     }
 
 
-    private function getFromCache(string $id): News
+    private function getFromCache(string|Uuid $id): News
     {
         $news = $this->cache->get($this->getCacheKey($id), function (ItemInterface $item) {
             if ($item->isHit()) {
@@ -103,7 +106,7 @@ class NewsProvider implements ProviderInterface
     }
 
 
-    private function getCacheKey(string $newsId): string
+    private function getCacheKey(string|Uuid $newsId): string
     {
         return "news_$newsId";
     }

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Bridge\NewsApi\Entity;
 
 use Serializable;
@@ -106,12 +108,6 @@ class News implements IEntity, Serializable
         $this->setEntityData($data);
     }
 
-    public function getId(): ?string
-    {
-        return $this->id;
-    }
-
-
     public function getPublishedAt(): ?DateTime
     {
         return $this->publishedAt;
@@ -133,7 +129,7 @@ class News implements IEntity, Serializable
 
     public function serialize(): string
     {
-        return json_encode($this->__serialize(), true);
+        return json_encode($this->__serialize());
     }
 
     public function unserialize(string $data): array

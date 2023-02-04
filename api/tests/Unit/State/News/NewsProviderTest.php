@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Tests\Unit\State\News;
 
 use ApiPlatform\Metadata\Operation;
@@ -63,7 +65,7 @@ class NewsProviderTest extends KernelTestCase
         $operation = $this->prophesize(Operation::class);
         $operation->getName()->willReturn("api_item");
 
-        $id = Uuid::v4();
+        $id = Uuid::v6();
 
         $news = $this->prophesize(News::class);
 
@@ -80,7 +82,7 @@ class NewsProviderTest extends KernelTestCase
         $operation = $this->prophesize(Operation::class);
         $operation->getName()->willReturn("api_item");
 
-        $id = Uuid::v4();
+        $id = Uuid::v6();
 
         $provider = $this->getProvider();
 

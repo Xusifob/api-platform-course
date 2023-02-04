@@ -1,19 +1,20 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Entity;
 
 use Stringable;
+use Symfony\Component\Uid\UuidV6;
 
 /**
  *
- * @property string|null $id
+ * @property string|UuidV6|null $id
  *
  */
 interface IEntity extends Stringable
 {
-    /**
-     * @return string|null
-     */
-    public function getId(): ?string;
+
+    public function getId(): null|UuidV6|string;
 
 }

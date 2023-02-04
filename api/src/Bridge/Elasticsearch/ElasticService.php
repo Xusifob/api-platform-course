@@ -1,18 +1,19 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Bridge\Elasticsearch;
 
+use App\Entity\IEntity;
+use Elasticsearch\Client;
+use Elasticsearch\ClientBuilder;
 use Exception;
 use ApiPlatform\Metadata\Resource\Factory\ResourceMetadataCollectionFactoryInterface;
 use ApiPlatform\Metadata\Resource\Factory\ResourceNameCollectionFactoryInterface;
-use ApiPlatform\Metadata\Resource\ResourceNameCollection;
 use App\DataCollector\ElasticCollector;
 use App\Entity\IElasticEntity;
 use App\Serializer\SerialisationGroupGenerator;
 use Doctrine\Persistence\ManagerRegistry;
-use Elastic\Elasticsearch\Client;
-use Elastic\Elasticsearch\ClientBuilder;
-use Elastic\Elasticsearch\Exception\ClientResponseException;
 use Psr\Log\LoggerInterface;
 use stdClass;
 use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
@@ -49,7 +50,10 @@ class ElasticService
         private readonly ?LoggerInterface $logger = null,
 
     ) {
-        $this->client = ClientBuilder::create()->setHosts([$host])->build();
+
+        $builder = ClientBuilder::create();
+
+        $this->client = $builder->create()->setHosts([$host])->build();
 
         $this->enabled = $this->environment !== "test";
 
@@ -156,11 +160,9 @@ class ElasticService
 
         $response = $this->client->search($search);
 
-        $data = $response->asObject();
+        $id = $this->collect(ElasticCollector::COLLECT_SEARCH, ["response" => $response], $id);
 
-        $id = $this->collect(ElasticCollector::COLLECT_SEARCH, ["response" => $response->asArray()], $id);
-
-        if ($data->hits->total->value === 0) {
+        if ($response['hits']['total']['value'] === 0) {
             return [
                 "data" => [],
                 'ids' => [],
@@ -172,16 +174,16 @@ class ElasticService
 
         $objects = [];
 
-        /** @var stdClass $hit */
-        foreach ($data->hits->hits as $hit) {
-            $ids[] = $hit->_id;
-            $objects[] = get_object_vars($hit->_source);
+        /** @var array $hit */
+        foreach ($response['hits']['hits'] as $hit) {
+            $ids[] = $hit['_id'];
+            $objects[] = $hit['_source'];
         }
 
         return [
             "data" => $objects,
             "ids" => $ids,
-            "totalItems" => $data->hits->total->value
+            "totalItems" => $response['hits']['total']['value']
         ];
     }
 
@@ -253,7 +255,7 @@ class ElasticService
 
         $request = [
             'index' => $index,
-            'id' => $item->getId(),
+            'id' => (string)$item->getId(),
         ];
 
         if ($method === self::METHOD_DELETE) {
@@ -279,12 +281,12 @@ class ElasticService
         return $request;
     }
 
-    public function isElasticEntity(IElasticEntity|string $className): bool
+    public function isElasticEntity(IEntity|string $className): bool
     {
         if (is_string($className)) {
             return is_subclass_of($className, IElasticEntity::class);
         }
-        return true;
+        return $className instanceof IElasticEntity;
     }
 
     private function getIndex(IElasticEntity|string $item, bool $withPrefix = true): string

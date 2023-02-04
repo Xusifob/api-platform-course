@@ -1,11 +1,14 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Repository;
 
 
 use App\Entity\IEntity;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
+use Symfony\Component\Uid\UuidV6;
 
 
 abstract class AbstractRepository extends ServiceEntityRepository implements IRepository
@@ -36,8 +39,13 @@ abstract class AbstractRepository extends ServiceEntityRepository implements IRe
 
 
     // https://stackoverflow.com/questions/12808597/php-verify-valid-uuid
-    protected function isUUId(string $id): bool
+    protected function isUUId(string|UuidV6 $id): bool
     {
+
+        if($id instanceof UuidV6) {
+            return true;
+        }
+
         return (bool) preg_match(
             "#^[\dA-F]{8}-[\dA-F]{4}-[\dA-F]{4}-[89AB][\dA-F]{3}-[\dA-F]{12}$#i",
             $id

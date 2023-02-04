@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Entity\Trait;
 
 use ApiPlatform\Metadata\ApiProperty;
@@ -13,9 +15,9 @@ trait StatusTrait
 
     #[ApiProperty(schema: [
         "type" => "int",
-        "enum" => EntityStatus::CASES,
+        "enum" => EntityStatus::class,
         "nullable" => false,
-        "example" => EntityStatus::CASES[0]
+        "example" => EntityStatus::ACTIVE
     ])]
     #[Groups("role_admin")]
     #[ORM\Column(type: 'smallint', nullable: false, enumType: EntityStatus::class)]

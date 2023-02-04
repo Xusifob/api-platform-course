@@ -1,13 +1,15 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\EventSubscriber;
 
 use App\Bridge\Elasticsearch\ElasticService;
 use App\Entity\IElasticEntity;
 use App\Entity\IEntity;
-use Doctrine\ORM\Event\LifecycleEventArgs;
 use Doctrine\ORM\Events;
 use Doctrine\Bundle\DoctrineBundle\EventSubscriber\EventSubscriberInterface;
+use Doctrine\Persistence\Event\LifecycleEventArgs;
 
 class ElasticSubscriber implements EventSubscriberInterface
 {

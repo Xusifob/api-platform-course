@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Tests\Integration\Repository;
 
 use App\Entity\Enum\UserRole;

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Entity;
 
 use ApiPlatform\Doctrine\Common\Filter\SearchFilterInterface;
@@ -15,6 +17,7 @@ use ApiPlatform\Metadata\GraphQl\Mutation;
 use ApiPlatform\Metadata\GraphQl\Query;
 use ApiPlatform\Metadata\GraphQl\QueryCollection;
 use ApiPlatform\Metadata\Link;
+use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Post;
 use ApiPlatform\Metadata\Put;
 use App\Entity\Trait\StatusTrait;
@@ -32,6 +35,7 @@ use App\Validator\IsReference;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Bridge\Doctrine\IdGenerator\UuidGenerator;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Serializer\Annotation\SerializedName;
@@ -48,7 +52,7 @@ use Symfony\Component\Validator\Constraints as Assert;
             security: "is_granted('PUBLIC_ACCESS')"
         ),
         new Post(securityPostDenormalize: "is_granted('CREATE',object)", processor: ProductProcessor::class),
-        new Put(securityPostDenormalize: "is_granted('UPDATE',previous_object)", processor: ProductProcessor::class),
+        new Patch(securityPostDenormalize: "is_granted('UPDATE',previous_object)", processor: ProductProcessor::class),
         new Delete(security: "is_granted('DELETE',object)")
     ],)]
 #[ApiResource(
@@ -57,7 +61,7 @@ use Symfony\Component\Validator\Constraints as Assert;
     provider: ElasticProvider::class
 )]
 #[ApiResource(
-    uriTemplate: '/products/{id}',
+    uriTemplate: '/products/{reference}',
     operations: [new Get(security: "is_granted('VIEW',object)")],
     provider: ProductProvider::class
 )]
@@ -87,6 +91,21 @@ class Product extends Entity implements IElasticEntity, IStatusEntity, INamedEnt
 
     use StatusTrait;
 
+
+    #[ORM\Id]
+    #[ORM\Column(type: 'uuid', unique: true, nullable: false)]
+    #[ApiProperty(
+        identifier: false,
+        schema: [
+            "type" => "string",
+            "format" => "uuid",
+            "nullable" => false
+        ], iris: "https://schema.org/identifier")]
+    #[Groups(["read"])]
+    #[ORM\GeneratedValue(strategy: "CUSTOM")]
+    #[ORM\CustomIdGenerator(class: UuidGenerator::class)]
+    protected $id;
+
     #[Groups(["product:write", "read", "elastic"])]
     #[ORM\Column(type: 'string', length: 255, nullable: false)]
     #[ApiProperty(schema: [
@@ -113,11 +132,13 @@ class Product extends Entity implements IElasticEntity, IStatusEntity, INamedEnt
 
 
     #[Groups(["product:item", "elastic"])]
-    #[ApiProperty(schema: [
+    #[ApiProperty(
+        identifier: true,
+        schema: [
         'type' => 'string',
         'example' => 'P123456789',
         'description' => 'The reference of the product. It must follow the format PXXXXXXXXXXX',
-        'required' => true
+        'required' => true,
     ], iris: "https://schema.org/identifier")]
     #[ORM\Column(type: 'string', length: 30, unique: true, nullable: false)]
     #[IsReference(message: "product.reference.invalid")]

@@ -1,12 +1,14 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Tests\Integration\EventSubscriber;
 
 use App\Bridge\Elasticsearch\ElasticService;
 use App\Entity\Product;
 use App\EventSubscriber\ElasticSubscriber;
 use Doctrine\ORM\EntityManagerInterface;
-use Doctrine\ORM\Event\LifecycleEventArgs;
+use Doctrine\Persistence\Event\LifecycleEventArgs;
 use Hautelook\AliceBundle\PhpUnit\ReloadDatabaseTrait;
 use Prophecy\PhpUnit\ProphecyTrait;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
@@ -60,7 +62,7 @@ class ElasticSubscriberTest extends KernelTestCase
         ]);
 
         $this->assertCount(1, $data["ids"]);
-        $this->assertContains($product->getId(), $data['ids']);
+        $this->assertContains((string)$product->getId(), $data['ids']);
     }
 
 
@@ -90,7 +92,7 @@ class ElasticSubscriberTest extends KernelTestCase
         ]);
 
         $this->assertCount(1, $data["ids"]);
-        $this->assertContains($product->getId(), $data['ids']);
+        $this->assertContains((string)$product->getId(), $data['ids']);
 
         $data = $this->service->search(Product::class, [
             "query" => [

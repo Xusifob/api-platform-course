@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Entity;
 
 use ApiPlatform\Metadata\Delete;
@@ -21,8 +23,10 @@ use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Serializer\Annotation\MaxDepth;
 use Symfony\Component\Validator\Constraints as Assert;
 use Vich\UploaderBundle\Mapping\Annotation as Vich;
+use ApiPlatform\OpenApi\Model;
 
-#[Vich\Uploadable]
+#[
+    Vich\Uploadable]
 #[ORM\Entity]
 #[ApiResource(
     types: ['https://schema.org/MediaObject'],
@@ -34,23 +38,26 @@ use Vich\UploaderBundle\Mapping\Annotation as Vich;
         new Post(
             uriTemplate: "upload",
             controller: CreateMediaObjectAction::class,
-            openapiContext: [
-                'requestBody' => [
-                    'content' => [
-                        'multipart/form-data' => [
-                            'schema' => [
-                                'type' => 'object',
-                                'properties' => [
-                                    'file' => [
-                                        'type' => 'string',
-                                        'format' => 'binary'
+            openapi: new Model\Operation(
+                summary: "A route used to upload a file",
+                description: "Upload all your files using this route and it will return you a path to the s3 file inside the bucket",
+                requestBody: new Model\RequestBody(
+                    content: new \ArrayObject([
+                            'multipart/form-data' => [
+                                'schema' => [
+                                    'type' => 'object',
+                                    'properties' => [
+                                        'file' => [
+                                            'type' => 'string',
+                                            'format' => 'binary'
+                                        ]
                                     ]
                                 ]
                             ]
                         ]
-                    ]
-                ]
-            ],
+                    )
+                ),
+            ),
             securityPostDenormalize: "is_granted('ROLE_USER')",
             validationContext: ['groups' => ['Default', 'media_object:post']],
             deserialize: false,

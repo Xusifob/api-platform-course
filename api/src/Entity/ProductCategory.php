@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Entity;
 
 
@@ -10,8 +12,8 @@ use ApiPlatform\Metadata\Delete;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Link;
+use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Post;
-use ApiPlatform\Metadata\Put;
 use App\Entity\Trait\StatusTrait;
 use App\Filter\StatusEntityFilter;
 use App\Repository\ProductCategoryRepository;
@@ -31,9 +33,10 @@ use Symfony\Component\Serializer\Annotation\Groups;
     ),
     new Get(security: "is_granted('VIEW',object)"),
     new Post(securityPostDenormalize: "is_granted('CREATE',object)"),
-    new Put(security: "is_granted('UPDATE',object)"),
+    new Patch(security: "is_granted('UPDATE',object)"),
     new Delete(security: "is_granted('DELETE',object)")
-])]
+]
+)]
 #[ApiFilter(StatusEntityFilter::class, properties: ['archived'])]
 class ProductCategory extends Entity implements IStatusEntity, INamedEntity
 {

@@ -1,11 +1,14 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Entity;
 
 use ApiPlatform\Metadata\ApiProperty;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
+use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Put;
 use App\Entity\Enum\NotificationType;
 use App\Entity\Trait\MercureTrait;
@@ -22,7 +25,7 @@ use Symfony\Component\Serializer\Annotation\Groups;
         new Get(
             security: "is_granted('VIEW',object)",
         ),
-        new Put(
+        new Patch(
             security: "is_granted('UPDATE',object)",
         )
     ],
@@ -48,7 +51,7 @@ class Notification extends Entity implements IOwnedEntity, IMercureEntity
     public readonly NotificationType $type;
 
 
-    #[Groups(["read", "notification:put"])]
+    #[Groups(["read", "notification:patch"])]
     #[ApiProperty(schema: [
         'type' => 'boolean',
         'description' => 'If the notification has been read by the user',

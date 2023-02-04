@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Tests\Unit\Entity\Trait;
 
 use App\Entity\Enum\EntityStatus;

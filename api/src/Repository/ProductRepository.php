@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Repository;
 
 
@@ -8,6 +10,7 @@ use App\Entity\IStatusEntity;
 use App\Entity\Product;
 use App\Entity\ProductCategory;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Symfony\Component\Uid\UuidV6;
 
 /**
  * @extends ServiceEntityRepository<Product>
@@ -23,14 +26,14 @@ class ProductRepository extends AbstractRepository
     protected $_entityName = Product::class;
 
 
-    public function findOneByReferenceOrId(string $identifier): ?Product
+    public function findOneByReferenceOrId(string|UuidV6 $identifier): ?Product
     {
         $condition = $this->isUUId($identifier) ? "p.id = :identifier" : "p.reference = :identifier";
 
         return
             $this->createQueryBuilder("p")
                 ->andWhere($condition)
-                ->setParameter("identifier", $identifier)
+                ->setParameter("identifier", (string)$identifier)
                 ->getQuery()
                 ->getOneOrNullResult();
     }

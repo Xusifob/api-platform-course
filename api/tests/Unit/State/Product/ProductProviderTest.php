@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Tests\Unit\State\Product;
 
 
@@ -37,11 +39,11 @@ class ProductProviderTest extends KernelTestCase
 
         $operation = $this->prophesize(Operation::class)->reveal();
 
-        $uriVariables = ["id" => "123456"];
+        $uriVariables = ["reference" => "123456"];
         $data = $provider->provide($operation, $uriVariables, []);
         $this->assertInstanceOf(Product::class, $data);
 
-        $uriVariables = ["id" => "1234567"];
+        $uriVariables = ["reference" => "1234567"];
         $data = $provider->provide($operation, $uriVariables, []);
         $this->assertNull($data);
     }

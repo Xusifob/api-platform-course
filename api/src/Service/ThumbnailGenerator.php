@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Service;
 
 
@@ -66,7 +68,7 @@ class ThumbnailGenerator
         $imagick->setImageCompression(Imagick::COMPRESSION_JPEG);
         $imagick->setImageCompressionQuality(90);
 
-        $imagick->thumbnailImage($width, $height, $bestFit, false);
+        $imagick->thumbnailImage((int)$width, (int)$height, $bestFit, false);
 
         // Add white background around
         $imagick->setImageAlphaChannel(Imagick::ALPHACHANNEL_REMOVE);

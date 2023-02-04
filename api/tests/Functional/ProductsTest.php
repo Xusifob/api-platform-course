@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Tests\Functional;
 
 use App\Entity\Enum\EntityStatus;
@@ -180,7 +182,7 @@ class ProductsTest extends ApiTester
         $product = $this->getProduct();
 
         $this->login("customer");
-        $data = $this->get("products/{$product->reference}");
+        $data = $this->get("products/$product->reference");
         $this->assertResponseIsSuccessful();
 
         $this->assertEquals($product->reference, $data['reference']);
@@ -427,7 +429,7 @@ class ProductsTest extends ApiTester
     {
         $this->login("customer");
         $product = $this->getProduct();
-        $this->put($product, [
+        $this->patch($product, [
             "name" => "Test Product",
             "description" => "Test Product Description",
         ]);
@@ -453,7 +455,7 @@ class ProductsTest extends ApiTester
             "discountPercent" => 25
         ]);
 
-        $data = $this->put($product, $postData);
+        $data = $this->patch($product, $postData);
 
         $this->assertResponseIsSuccessful();
 
@@ -554,12 +556,13 @@ class ProductsTest extends ApiTester
 
     public function testEntityUrl(): void
     {
+        /** @var Product $entity */
         $entity = $this->getEntity();
 
         $this->getEntityUri($entity);
 
         $this->assertInstanceOf(Product::class, $entity);
-        $this->assertEquals("/products/{$entity->getId()}", $this->getEntityUri($entity));
+        $this->assertEquals("/products/{$entity->reference}", $this->getEntityUri($entity));
     }
 
 

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\State\Product;
 
 use ApiPlatform\Metadata\Operation;
@@ -22,7 +24,7 @@ class ProductProvider implements ProviderInterface
      */
     public function provide(Operation $operation, array $uriVariables = [], array $context = []): ?Product
     {
-        return $this->em->getRepository(Product::class)->findOneByReferenceOrId($uriVariables['id']);
+        return $this->em->getRepository(Product::class)->findOneByReferenceOrId($uriVariables['reference']);
     }
 
 

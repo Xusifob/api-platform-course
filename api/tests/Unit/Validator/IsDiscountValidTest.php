@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Tests\Unit\Validator;
 
 
@@ -75,8 +77,8 @@ class IsDiscountValidTest extends ConstraintValidatorTestCase
 
         $this->buildViolation($message)
             ->atPath("property.path.discountPercent")
-            ->setParameter("{{ value }}", $discountPercent)
-            ->setParameter("{{ maxValue }}", $maxValue)
+            ->setParameter("{{ value }}", (string)$discountPercent)
+            ->setParameter("{{ maxValue }}", (string)$maxValue)
             ->assertRaised();
     }
 

@@ -40,10 +40,12 @@ api_platform:
         pagination_items_per_page: 30
         pagination_client_items_per_page: true
         pagination_maximum_items_per_page: 100
-            
+        standard_put: true
         stateless: true
         normalization_context: 
             skip_null_values: false
+        denormalization_context: 
+            collect_denormalization_errors: true
         cache_headers:
             vary: ['Content-Type', 'Authorization', 'Origin']
             

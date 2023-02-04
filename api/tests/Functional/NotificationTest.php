@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Tests\Functional;
 
 use App\Entity\Notification;
@@ -101,7 +103,7 @@ class NotificationTest extends ApiTester
 
         $this->format = self::FORMAT_JSONLD;
 
-        $item = $this->put("/notifications/{$notification->getId()}", [
+        $item = $this->patch("/notifications/{$notification->getId()}", [
             'read' => false
         ]);
         $this->assertResponseIsSuccessful();

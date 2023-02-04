@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Entity;
 
 use ApiPlatform\Metadata\ApiProperty;
@@ -23,6 +25,7 @@ use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Serializer\Annotation\SerializedName;
+use Symfony\Component\Uid\UuidV6;
 use Symfony\Component\Validator\Constraints\Email;
 use Symfony\Component\Validator\Constraints\Length;
 use Symfony\Component\Validator\Constraints\NotBlank;
@@ -132,10 +135,7 @@ class User extends Entity implements IEntity, IStatusEntity, UserInterface, Pass
     #[ORM\Column(type: Types::DATE_MUTABLE, nullable: true)]
     public ?DateTimeInterface $birthDate = null;
 
-    public function getId(): string|null
-    {
-        return $this->id;
-    }
+
 
 
     #[ApiProperty(schema: [

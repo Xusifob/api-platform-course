@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Service;
 
 
@@ -26,12 +28,12 @@ class MediaUploader
 
     public function getReadEndpoint(): string
     {
-        return $this->s3ReadClient->getEndpoint();
+        return (string)$this->s3ReadClient->getEndpoint();
     }
 
     public function getWriteEndpoint(): string
     {
-        return $this->s3WriteClient->getEndpoint();
+        return (string)$this->s3WriteClient->getEndpoint();
     }
 
 
@@ -124,7 +126,7 @@ class MediaUploader
             ]
         );
 
-        return $this->s3ReadClient->createPresignedRequest($cmd, "+ {$expire} seconds")->getUri();
+        return (string)$this->s3ReadClient->createPresignedRequest($cmd, "+ {$expire} seconds")->getUri();
     }
 
 
